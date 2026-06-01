@@ -1,0 +1,5 @@
+이 폴더에 아래 파일을 넣어주세요:
+
+- invitation-card.jpg   → 초대장 이미지
+- invitation-video.mp4  → 초대 영상
+- invitation-video-poster.jpg → 영상 썸네일 이미지
