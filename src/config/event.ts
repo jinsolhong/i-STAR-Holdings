@@ -22,7 +22,7 @@ export const EVENT_CONFIG = {
   venueFloor: '5층',
   venueAddress: '서울특별시 강남구 테헤란로 521',
   // 지도 링크: 카카오맵, 네이버맵, 구글맵 URL을 여기에 넣으세요
-  mapUrl: 'https://naver.me/GPxJ2bSf',
+  mapUrl: 'https://naver.me/Gq84NH2L',
 
   // ── 슬로건 ──────────────────────────────────────────────────
   slogan1: '뜻을 잇고 세상을 잇다.',
