@@ -27,6 +27,7 @@ export default function InviteesPage() {
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [phone4Search, setPhone4Search] = useState('');
+  const [gradeFilter, setGradeFilter] = useState<Grade | ''>('');
   const [page, setPage] = useState(1);
 
   // 체크박스 선택
@@ -62,13 +63,14 @@ export default function InviteesPage() {
       const params = new URLSearchParams({ page: String(page) });
       if (search) params.set('search', search);
       if (phone4Search) params.set('phone4', phone4Search);
+      if (gradeFilter) params.set('grade', gradeFilter);
       const res = await fetch(`/api/admin/invitees?${params}`);
       const d = await res.json();
       if (d.success) { setRows(d.data); setTotal(d.total); }
     } finally {
       setLoading(false);
     }
-  }, [page, search, phone4Search]);
+  }, [page, search, phone4Search, gradeFilter]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -213,12 +215,35 @@ export default function InviteesPage() {
       {csvMsg && <p className={`mb-4 text-sm px-3 py-2 rounded-lg ${csvMsg.includes('완료') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>{csvMsg}</p>}
 
       {/* 검색 */}
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-2 mb-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input type="text" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} placeholder="이름 검색" className="input-field pl-9 py-2.5" />
         </div>
         <input type="tel" value={phone4Search} onChange={(e) => { setPhone4Search(e.target.value.replace(/\D/g, '').slice(0, 4)); setPage(1); }} placeholder="뒤 4자리" className="input-field w-28 py-2.5" maxLength={4} />
+      </div>
+
+      {/* 등급 필터 */}
+      <div className="flex gap-1.5 mb-4 flex-wrap">
+        <button
+          onClick={() => { setGradeFilter(''); setPage(1); }}
+          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+            gradeFilter === '' ? 'bg-gray-800 text-white border-gray-800' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+          }`}
+        >
+          전체
+        </button>
+        {GRADES.map((g) => (
+          <button
+            key={g}
+            onClick={() => { setGradeFilter(g); setPage(1); }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
+              gradeFilter === g ? 'bg-[#006241] text-white border-[#006241]' : 'bg-white text-gray-500 border-gray-200 hover:border-[#006241]'
+            }`}
+          >
+            {g}
+          </button>
+        ))}
       </div>
 
       {/* 일괄 액션 바 */}

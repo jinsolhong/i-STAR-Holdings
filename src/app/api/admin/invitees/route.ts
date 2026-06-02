@@ -26,6 +26,7 @@ export async function GET(req: NextRequest) {
 
   const search = req.nextUrl.searchParams.get('search') ?? '';
   const phone4 = req.nextUrl.searchParams.get('phone4') ?? '';
+  const grade = req.nextUrl.searchParams.get('grade') ?? '';
   const page = parseInt(req.nextUrl.searchParams.get('page') ?? '1', 10);
   const limit = 50;
   const offset = (page - 1) * limit;
@@ -33,12 +34,13 @@ export async function GET(req: NextRequest) {
   const supabase = createServiceClient();
   let query = supabase
     .from('invitees')
-    .select('id, name, phone_last4, invitation_token, rsvp_status, checked_in, checked_in_at, created_at', { count: 'exact' })
+    .select('id, name, grade, phone_last4, invitation_token, rsvp_status, checked_in, checked_in_at, created_at', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
 
   if (search) query = query.ilike('name', `%${search}%`);
   if (phone4) query = query.eq('phone_last4', phone4);
+  if (grade) query = query.eq('grade', grade);
 
   const { data, error, count } = await query;
   if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
