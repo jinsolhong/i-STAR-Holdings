@@ -7,15 +7,16 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import type { CheckinResult } from '@/lib/types';
 
 type ScanMode = 'idle' | 'scanning' | 'result';
-type ResultStatus = CheckinResult['status'] | null;
 
 const STATUS_CONFIG: Record<string, { bg: string; text: string; icon: React.ElementType; label: string }> = {
-  success:      { bg: 'bg-green-500',  text: 'text-white', icon: CheckCircle2, label: '입장 가능' },
-  already_used: { bg: 'bg-orange-500', text: 'text-white', icon: XCircle,      label: '이미 입장됨' },
-  invalid:      { bg: 'bg-red-600',    text: 'text-white', icon: XCircle,      label: '유효하지 않음' },
-  not_attending:{ bg: 'bg-yellow-400', text: 'text-gray-900', icon: AlertTriangle, label: '참석 미신청' },
-  locked:       { bg: 'bg-gray-400',   text: 'text-white', icon: RefreshCw,    label: '처리 중' },
+  success:       { bg: 'bg-green-500',  text: 'text-white',     icon: CheckCircle2,  label: '입장 확인' },
+  already_used:  { bg: 'bg-orange-500', text: 'text-white',     icon: XCircle,       label: '이미 입장됨' },
+  invalid:       { bg: 'bg-red-600',    text: 'text-white',     icon: XCircle,       label: '유효하지 않음' },
+  not_attending: { bg: 'bg-yellow-400', text: 'text-gray-900',  icon: AlertTriangle, label: '참석 미신청' },
+  locked:        { bg: 'bg-gray-400',   text: 'text-white',     icon: RefreshCw,     label: '처리 중' },
 };
+
+const AUTO_RESET_SEC = 5;
 
 export default function CheckinPage() {
   const [mode, setMode] = useState<ScanMode>('idle');
@@ -23,11 +24,14 @@ export default function CheckinPage() {
   const [manualToken, setManualToken] = useState('');
   const [manualLoading, setManualLoading] = useState(false);
   const [cameraError, setCameraError] = useState('');
-  const [confirmed, setConfirmed] = useState(false);
   const [checkinLoading, setCheckinLoading] = useState(false);
+  const [countdown, setCountdown] = useState(AUTO_RESET_SEC);
+  const [kioskMode, setKioskMode] = useState(false); // 키오스크 모드 (자동 재시작)
 
   const qrRef = useRef<Html5Qrcode | null>(null);
   const scannerDivId = 'qr-scanner-div';
+  const countdownTimer = useRef<NodeJS.Timeout | null>(null);
+  const countdownInterval = useRef<NodeJS.Timeout | null>(null);
 
   const stopScanner = useCallback(async () => {
     if (qrRef.current?.isScanning) {
@@ -36,33 +40,30 @@ export default function CheckinPage() {
     }
   }, []);
 
-  const handleQrResult = useCallback(async (decodedText: string) => {
-    await stopScanner();
-    setMode('result');
-    await doCheckin(decodedText);
-  }, [stopScanner]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const startScanner = async () => {
+  const startScanner = useCallback(async () => {
     setCameraError('');
     setMode('scanning');
     setResult(null);
-    setConfirmed(false);
 
     setTimeout(async () => {
       try {
         qrRef.current = new Html5Qrcode(scannerDivId);
         await qrRef.current.start(
           { facingMode: 'environment' },
-          { fps: 10, qrbox: { width: 240, height: 240 } },
-          handleQrResult,
+          { fps: 10, qrbox: { width: 260, height: 260 } },
+          async (decodedText) => {
+            await stopScanner();
+            setMode('result');
+            await doCheckin(decodedText);
+          },
           () => {}
         );
       } catch {
-        setCameraError('카메라 접근이 거부되었습니다. 직접 토큰을 입력해 주세요.');
+        setCameraError('카메라 접근이 거부되었습니다.');
         setMode('idle');
       }
     }, 300);
-  };
+  }, [stopScanner]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const doCheckin = async (token: string) => {
     setCheckinLoading(true);
@@ -81,21 +82,53 @@ export default function CheckinPage() {
     }
   };
 
+  // 결과 표시 후 카운트다운 → 자동 재시작
+  useEffect(() => {
+    if (mode === 'result' && !checkinLoading) {
+      setCountdown(AUTO_RESET_SEC);
+
+      countdownInterval.current = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(countdownInterval.current!);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      countdownTimer.current = setTimeout(() => {
+        setResult(null);
+        if (kioskMode) {
+          startScanner(); // 키오스크: 자동 재시작
+        } else {
+          setMode('idle');
+        }
+      }, AUTO_RESET_SEC * 1000);
+    }
+
+    return () => {
+      if (countdownTimer.current) clearTimeout(countdownTimer.current);
+      if (countdownInterval.current) clearInterval(countdownInterval.current);
+    };
+  }, [mode, checkinLoading]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const resetNow = () => {
+    if (countdownTimer.current) clearTimeout(countdownTimer.current);
+    if (countdownInterval.current) clearInterval(countdownInterval.current);
+    setResult(null);
+    if (kioskMode) startScanner();
+    else setMode('idle');
+  };
+
   const handleManual = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!manualToken.trim()) return;
     setManualLoading(true);
     setMode('result');
     await doCheckin(manualToken.trim());
-    setManualLoading(false);
-  };
-
-  const reset = async () => {
-    await stopScanner();
-    setMode('idle');
-    setResult(null);
     setManualToken('');
-    setConfirmed(false);
+    setManualLoading(false);
   };
 
   useEffect(() => { return () => { stopScanner(); }; }, [stopScanner]);
@@ -104,50 +137,73 @@ export default function CheckinPage() {
 
   return (
     <div className="max-w-md mx-auto">
-      <h1 className="text-xl font-bold text-gray-900 mb-6">현장 QR 체크인</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-xl font-bold text-gray-900">현장 QR 체크인</h1>
+
+        {/* 키오스크 모드 토글 */}
+        <button
+          onClick={() => setKioskMode(v => !v)}
+          className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+            kioskMode ? 'bg-[#006241] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          <Camera className="w-4 h-4" />
+          키오스크 모드 {kioskMode ? 'ON' : 'OFF'}
+        </button>
+      </div>
+
+      {kioskMode && mode === 'idle' && (
+        <div className="mb-4 p-3 bg-green-50 rounded-xl text-sm text-green-700 text-center">
+          키오스크 모드: 스캔 후 {AUTO_RESET_SEC}초 뒤 자동으로 카메라가 재시작됩니다.
+        </div>
+      )}
 
       {/* 결과 화면 */}
       {mode === 'result' && (
         <div className="space-y-4 animate-fade-in">
           {checkinLoading ? (
-            <div className="bg-white rounded-2xl p-10 flex flex-col items-center gap-4 shadow-sm border border-gray-100">
+            <div className="rounded-2xl p-16 flex flex-col items-center gap-4 bg-gray-50">
               <LoadingSpinner size="lg" />
-              <p className="text-gray-500">확인 중...</p>
+              <p className="text-gray-500 text-lg font-medium">확인 중...</p>
             </div>
           ) : result && statusCfg ? (
             <>
-              <div className={`rounded-2xl p-8 text-center ${statusCfg.bg}`}>
-                <statusCfg.icon className={`w-16 h-16 mx-auto mb-3 ${statusCfg.text}`} />
-                <p className={`text-2xl font-bold ${statusCfg.text}`}>{statusCfg.label}</p>
-                <p className={`mt-2 text-lg font-semibold ${statusCfg.text}`}>{result.message}</p>
+              <div className={`rounded-2xl p-10 text-center ${statusCfg.bg} relative overflow-hidden`}>
+                {/* 카운트다운 링 */}
+                <div className="absolute top-3 right-3">
+                  <div className={`w-10 h-10 rounded-full border-4 border-white/30 flex items-center justify-center`}>
+                    <span className={`text-sm font-bold ${statusCfg.text}`}>{countdown}</span>
+                  </div>
+                </div>
+
+                <statusCfg.icon className={`w-20 h-20 mx-auto mb-4 ${statusCfg.text}`} />
+                <p className={`text-3xl font-bold mb-2 ${statusCfg.text}`}>{statusCfg.label}</p>
+                <p className={`text-lg ${statusCfg.text} opacity-90`}>{result.message}</p>
                 {result.name && (
-                  <p className={`text-3xl font-bold mt-3 ${statusCfg.text}`}>{result.name} 님</p>
+                  <p className={`text-4xl font-bold mt-4 ${statusCfg.text}`}>{result.name} 님</p>
                 )}
                 {result.status === 'already_used' && result.checked_in_at && (
-                  <p className={`mt-2 text-sm opacity-80 ${statusCfg.text}`}>
+                  <p className={`mt-3 text-sm opacity-75 ${statusCfg.text}`}>
                     입장 시각: {new Date(result.checked_in_at).toLocaleString('ko-KR')}
                   </p>
                 )}
               </div>
 
-              {/* not_attending: 참석 처리 후 입장 옵션 */}
-              {result.status === 'not_attending' && !confirmed && (
-                <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-3">
-                  <p className="text-sm text-gray-600 text-center">관리자 확인 후 참석 처리하고 입장할 수 있습니다.</p>
-                  <button
-                    onClick={async () => {
-                      // 수동으로 rsvp + checkin 처리는 관리자 페이지에서
-                      setConfirmed(true);
-                    }}
-                    className="btn-brand py-3"
-                  >
-                    참석 처리 후 입장 (관리자 확인)
-                  </button>
-                </div>
-              )}
+              {/* 진행 바 */}
+              <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                <div
+                  className="h-1.5 bg-[#006241] rounded-full transition-all"
+                  style={{
+                    width: `${(countdown / AUTO_RESET_SEC) * 100}%`,
+                    transition: 'width 1s linear',
+                  }}
+                />
+              </div>
+              <p className="text-center text-xs text-gray-400">{countdown}초 후 자동으로 {kioskMode ? '카메라 재시작' : '초기화'}</p>
 
-              <button onClick={reset} className="btn-outline py-3">
-                <RefreshCw className="w-4 h-4" /> 다음 QR 스캔
+              <button onClick={resetNow} className="btn-outline py-3">
+                <RefreshCw className="w-4 h-4" />
+                {kioskMode ? '지금 바로 다음 스캔' : '다음 QR 스캔'}
               </button>
             </>
           ) : null}
@@ -160,7 +216,8 @@ export default function CheckinPage() {
           <div className="bg-gray-900 rounded-2xl overflow-hidden">
             <div id={scannerDivId} className="w-full" />
           </div>
-          <button onClick={reset} className="btn-outline py-3">
+          <p className="text-center text-sm text-gray-500">QR 코드를 카메라에 비춰주세요</p>
+          <button onClick={async () => { await stopScanner(); setMode('idle'); }} className="btn-outline py-3">
             <CameraOff className="w-4 h-4" /> 스캔 중지
           </button>
         </div>
@@ -169,8 +226,8 @@ export default function CheckinPage() {
       {/* 대기 화면 */}
       {mode === 'idle' && (
         <div className="space-y-4">
-          <button onClick={startScanner} className="btn-brand">
-            <Camera className="w-5 h-5" /> QR 카메라 스캔
+          <button onClick={startScanner} className="btn-brand text-lg py-5">
+            <Camera className="w-6 h-6" /> QR 카메라 스캔 시작
           </button>
 
           {cameraError && (
