@@ -4,6 +4,21 @@ import { getAdminSession } from '@/lib/auth';
 import { generateToken, hashToken } from '@/lib/tokens';
 import { v4 as uuidv4 } from 'uuid';
 
+// 초대자 삭제
+export async function DELETE(req: NextRequest) {
+  const session = await getAdminSession();
+  if (!session) return NextResponse.json({ success: false, error: '인증 필요' }, { status: 401 });
+
+  const id = req.nextUrl.searchParams.get('id');
+  if (!id) return NextResponse.json({ success: false, error: 'id 필요' }, { status: 400 });
+
+  const supabase = createServiceClient();
+  const { error } = await supabase.from('invitees').delete().eq('id', id);
+  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+
+  return NextResponse.json({ success: true });
+}
+
 // 목록 조회 + 검색
 export async function GET(req: NextRequest) {
   const session = await getAdminSession();
@@ -63,12 +78,15 @@ export async function PATCH(req: NextRequest) {
   const session = await getAdminSession();
   if (!session) return NextResponse.json({ success: false, error: '인증 필요' }, { status: 401 });
 
-  const { id, rsvp_status, checked_in, reissue_qr, notes } = await req.json();
+  const { id, name, grade, phone_last4, rsvp_status, checked_in, reissue_qr, notes } = await req.json();
   if (!id) return NextResponse.json({ success: false, error: 'id 필요' }, { status: 400 });
 
   const supabase = createServiceClient();
 
   const updates: Record<string, unknown> = {};
+  if (name !== undefined) updates.name = name;
+  if (grade !== undefined) updates.grade = grade;
+  if (phone_last4 !== undefined) updates.phone_last4 = phone_last4;
   if (rsvp_status !== undefined) updates.rsvp_status = rsvp_status;
   if (checked_in !== undefined) {
     updates.checked_in = checked_in;

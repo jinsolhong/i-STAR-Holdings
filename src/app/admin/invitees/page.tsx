@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   Search, Plus, Upload, Download, Copy, RefreshCw,
-  CheckCircle2, XCircle, Clock, LogIn, MoreVertical, Link2, X
+  CheckCircle2, XCircle, Clock, LogIn, MoreVertical, Link2, X, Pencil, Trash2
 } from 'lucide-react';
 import Papa from 'papaparse';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -45,6 +45,13 @@ export default function InviteesPage() {
   // 메뉴 열림 상태
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  // 수정 모달
+  const [editTarget, setEditTarget] = useState<Row | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editGrade, setEditGrade] = useState<Grade | ''>('');
+  const [editPhone4, setEditPhone4] = useState('');
+  const [editLoading, setEditLoading] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -121,6 +128,40 @@ export default function InviteesPage() {
     });
     setActionLoading(null);
     setOpenMenu(null);
+    fetchData();
+  };
+
+  const openEdit = (row: Row) => {
+    setEditTarget(row);
+    setEditName(row.name);
+    setEditGrade((row.grade as Grade) ?? '');
+    setEditPhone4(row.phone_last4 ?? '');
+    setOpenMenu(null);
+  };
+
+  const handleEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editTarget) return;
+    setEditLoading(true);
+    await fetch('/api/admin/invitees', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: editTarget.id,
+        name: editName.trim(),
+        grade: editGrade || null,
+        phone_last4: editPhone4 || null,
+      }),
+    });
+    setEditLoading(false);
+    setEditTarget(null);
+    fetchData();
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`"${name}" 님을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) return;
+    setOpenMenu(null);
+    await fetch(`/api/admin/invitees?id=${id}`, { method: 'DELETE' });
     fetchData();
   };
 
@@ -228,6 +269,9 @@ export default function InviteesPage() {
                   </button>
                   {openMenu === row.id && (
                     <div className="absolute right-4 top-10 z-20 bg-white rounded-xl shadow-lg border border-gray-100 py-1 min-w-40">
+                      <button onClick={() => openEdit(row)} className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                        <Pencil className="w-4 h-4 text-blue-500" /> 정보 수정
+                      </button>
                       <button onClick={() => copyLink(row.invitation_token)} className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
                         <Link2 className="w-4 h-4" /> 초대 링크 복사
                       </button>
@@ -252,6 +296,10 @@ export default function InviteesPage() {
                           <X className="w-4 h-4" /> 입장 취소
                         </button>
                       )}
+                      <div className="border-t border-gray-100 my-1" />
+                      <button onClick={() => handleDelete(row.id, row.name)} className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50">
+                        <Trash2 className="w-4 h-4" /> 삭제
+                      </button>
                       {actionLoading === row.id && <div className="flex justify-center py-2"><LoadingSpinner size="sm" /></div>}
                     </div>
                   )}
@@ -302,6 +350,42 @@ export default function InviteesPage() {
                 <button type="button" onClick={() => setAddOpen(false)} className="btn-outline flex-1 py-3">취소</button>
                 <button type="submit" disabled={addLoading} className="btn-brand flex-1 py-3">
                   {addLoading ? <LoadingSpinner size="sm" color="white" /> : '추가'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 수정 모달 */}
+      {editTarget && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+            <h2 className="font-bold text-gray-900 text-lg mb-4">초대자 정보 수정</h2>
+            <form onSubmit={handleEdit} className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">등급</label>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {GRADES.map((g) => (
+                    <button key={g} type="button" onClick={() => setEditGrade(g)}
+                      className={`py-2 rounded-lg text-xs font-bold border transition-all ${editGrade === g ? 'bg-[#006241] text-white border-[#006241]' : 'bg-white text-gray-600 border-gray-200'}`}>
+                      {g}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">이름 *</label>
+                <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} className="input-field" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">전화번호 뒤 4자리</label>
+                <input type="tel" value={editPhone4} onChange={(e) => setEditPhone4(e.target.value.replace(/\D/g, '').slice(0, 4))} className="input-field" placeholder="0000" maxLength={4} />
+              </div>
+              <div className="flex gap-2 pt-2">
+                <button type="button" onClick={() => setEditTarget(null)} className="btn-outline flex-1 py-3">취소</button>
+                <button type="submit" disabled={editLoading} className="btn-brand flex-1 py-3">
+                  {editLoading ? <LoadingSpinner size="sm" color="white" /> : '저장'}
                 </button>
               </div>
             </form>
