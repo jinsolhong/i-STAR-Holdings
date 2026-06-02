@@ -1,8 +1,11 @@
 export type RsvpStatus = 'pending' | 'attending' | 'declined';
+export type Grade = '0STAR' | '1STAR' | '2STAR' | '3STAR' | '4STAR' | '5STAR' | 'STAFF';
+export const GRADES: Grade[] = ['0STAR','1STAR','2STAR','3STAR','4STAR','5STAR','STAFF'];
 
 export interface Invitee {
   id: string;
   name: string;
+  grade: Grade | null;
   phone_last4: string | null;
   invitation_token: string;
   qr_token_hash: string | null;

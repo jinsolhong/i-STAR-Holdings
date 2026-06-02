@@ -7,18 +7,19 @@ import { ChevronRight, AlertCircle } from 'lucide-react';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import IStarLogo from '@/components/IStarLogo';
 import { EVENT_CONFIG } from '@/config/event';
+import { GRADES, type Grade } from '@/lib/types';
 
 function HomeForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [name, setName] = useState('');
+  const [grade, setGrade] = useState<Grade | ''>('');
   const [phone4, setPhone4] = useState('');
   const [step, setStep] = useState<'name' | 'phone'>('name');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // 개인 링크로 진입 시 name 채우기 (invite/[token]에서 쿼리로 전달)
   const prefillName = searchParams.get('n');
   const prefillToken = searchParams.get('t');
 
@@ -29,6 +30,7 @@ function HomeForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) { setError('이름을 입력해 주세요.'); return; }
+    if (!grade) { setError('등급을 선택해 주세요.'); return; }
     setError('');
     setLoading(true);
 
@@ -38,6 +40,7 @@ function HomeForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: name.trim(),
+          grade,
           phone4: step === 'phone' ? phone4.trim() : undefined,
           invitationToken: prefillToken ?? undefined,
         }),
@@ -53,7 +56,6 @@ function HomeForm() {
       } else if (data.status === 'phone_mismatch') {
         setError('입력하신 정보와 일치하는 대상자를 찾을 수 없습니다.');
       } else if (data.status === 'ok') {
-        // invitee_id를 세션에 저장 후 초대장 페이지로 이동
         sessionStorage.setItem('istar_invitee_id', data.invitee_id);
         sessionStorage.setItem('istar_name', data.name);
         router.push('/invitation');
@@ -68,9 +70,8 @@ function HomeForm() {
   return (
     <div className="mobile-container">
       <div className="min-h-dvh flex flex-col px-6 pb-safe">
-        {/* 상단 브랜드 영역 */}
         <div className="flex-1 flex flex-col justify-center">
-          {/* 로고 / 브랜드 */}
+          {/* 로고 */}
           <div className="mb-10 animate-fade-in">
             <div className="mb-6">
               <IStarLogo size={56} />
@@ -83,6 +84,30 @@ function HomeForm() {
 
           {/* 입력 폼 */}
           <form onSubmit={handleSubmit} className="animate-slide-up space-y-4">
+
+            {/* 등급 선택 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                등급
+              </label>
+              <div className="grid grid-cols-4 gap-2">
+                {GRADES.map((g) => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => { setGrade(g); setError(''); }}
+                    className={`py-2.5 rounded-xl text-sm font-semibold border transition-all ${
+                      grade === g
+                        ? 'bg-[#006241] text-white border-[#006241]'
+                        : 'bg-white text-gray-600 border-gray-200 hover:border-[#006241]'
+                    }`}
+                  >
+                    {g}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* 이름 입력 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -136,7 +161,7 @@ function HomeForm() {
 
             <button
               type="submit"
-              disabled={loading || !name.trim() || (step === 'phone' && phone4.length !== 4)}
+              disabled={loading || !name.trim() || !grade || (step === 'phone' && phone4.length !== 4)}
               className="btn-brand mt-2"
             >
               {loading ? (
@@ -151,7 +176,6 @@ function HomeForm() {
           </form>
         </div>
 
-        {/* 하단 행사 정보 힌트 */}
         <div className="py-6 text-center">
           <p className="text-xs text-gray-400">
             {EVENT_CONFIG.dateDisplay} · {EVENT_CONFIG.venue}

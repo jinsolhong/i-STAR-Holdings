@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
   const session = await getAdminSession();
   if (!session) return NextResponse.json({ success: false, error: '인증 필요' }, { status: 401 });
 
-  const { name, phone_last4, notes } = await req.json();
+  const { name, grade, phone_last4, notes } = await req.json();
   if (!name?.trim()) return NextResponse.json({ success: false, error: '이름 필요' }, { status: 400 });
 
   const supabase = createServiceClient();
@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
     .insert({
       id: uuidv4(),
       name: name.trim(),
+      grade: grade || null,
       phone_last4: phone_last4?.trim() || null,
       invitation_token: invitationToken,
       notes: notes ?? null,

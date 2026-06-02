@@ -8,6 +8,7 @@ import {
 import Papa from 'papaparse';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import type { Invitee } from '@/lib/types';
+import { GRADES, type Grade } from '@/lib/types';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? '';
 
@@ -32,6 +33,7 @@ export default function InviteesPage() {
   // 추가 모달
   const [addOpen, setAddOpen] = useState(false);
   const [addName, setAddName] = useState('');
+  const [addGrade, setAddGrade] = useState<Grade | ''>('');
   const [addPhone4, setAddPhone4] = useState('');
   const [addLoading, setAddLoading] = useState(false);
 
@@ -72,11 +74,11 @@ export default function InviteesPage() {
     const res = await fetch('/api/admin/invitees', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: addName, phone_last4: addPhone4 }),
+      body: JSON.stringify({ name: addName, grade: addGrade || null, phone_last4: addPhone4 }),
     });
     const d = await res.json();
     if (d.success) {
-      setAddOpen(false); setAddName(''); setAddPhone4('');
+      setAddOpen(false); setAddName(''); setAddGrade(''); setAddPhone4('');
       fetchData();
     }
     setAddLoading(false);
@@ -174,6 +176,7 @@ export default function InviteesPage() {
           <thead>
             <tr className="border-b border-gray-100 text-xs text-gray-400 font-medium">
               <th className="px-4 py-3 text-left">이름</th>
+              <th className="px-4 py-3 text-left">등급</th>
               <th className="px-4 py-3 text-left">전화 뒤4</th>
               <th className="px-4 py-3 text-left">참석여부</th>
               <th className="px-4 py-3 text-left">QR</th>
@@ -196,6 +199,11 @@ export default function InviteesPage() {
             ) : rows.map((row) => (
               <tr key={row.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
                 <td className="px-4 py-3 font-medium text-gray-900">{row.name}</td>
+                <td className="px-4 py-3">
+                  {row.grade ? (
+                    <span className="text-xs font-bold text-[#006241] bg-green-50 px-2 py-0.5 rounded-full">{row.grade}</span>
+                  ) : <span className="text-gray-400 text-xs">-</span>}
+                </td>
                 <td className="px-4 py-3 text-gray-500">{row.phone_last4 ?? '-'}</td>
                 <td className="px-4 py-3">{rsvpBadge(row.rsvp_status)}</td>
                 <td className="px-4 py-3">
@@ -271,6 +279,17 @@ export default function InviteesPage() {
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
             <h2 className="font-bold text-gray-900 text-lg mb-4">초대자 추가</h2>
             <form onSubmit={handleAdd} className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">등급 *</label>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {GRADES.map((g) => (
+                    <button key={g} type="button" onClick={() => setAddGrade(g)}
+                      className={`py-2 rounded-lg text-xs font-bold border transition-all ${addGrade === g ? 'bg-[#006241] text-white border-[#006241]' : 'bg-white text-gray-600 border-gray-200'}`}>
+                      {g}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">이름 *</label>
                 <input type="text" value={addName} onChange={(e) => setAddName(e.target.value)} className="input-field" placeholder="홍길동" required />
