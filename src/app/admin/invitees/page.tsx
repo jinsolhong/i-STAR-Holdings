@@ -215,12 +215,25 @@ export default function InviteesPage() {
       {csvMsg && <p className={`mb-4 text-sm px-3 py-2 rounded-lg ${csvMsg.includes('완료') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>{csvMsg}</p>}
 
       {/* 검색 */}
-      <div className="flex gap-2 mb-3">
-        <div className="relative flex-1">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
+        <div className="relative sm:col-span-2">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input type="text" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} placeholder="이름 검색" className="input-field pl-9 py-2.5" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            placeholder="이름 검색"
+            className="input-field pl-9 py-2.5 w-full"
+          />
         </div>
-        <input type="tel" value={phone4Search} onChange={(e) => { setPhone4Search(e.target.value.replace(/\D/g, '').slice(0, 4)); setPage(1); }} placeholder="뒤 4자리" className="input-field w-28 py-2.5" maxLength={4} />
+        <input
+          type="tel"
+          value={phone4Search}
+          onChange={(e) => { setPhone4Search(e.target.value.replace(/\D/g, '').slice(0, 4)); setPage(1); }}
+          placeholder="전화번호 뒤 4자리"
+          className="input-field py-2.5 w-full"
+          maxLength={4}
+        />
       </div>
 
       {/* 등급 필터 */}
