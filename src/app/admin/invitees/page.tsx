@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Search, Plus, Upload, Download, Copy, RefreshCw,
   CheckCircle2, XCircle, Clock, LogIn, MoreVertical, Link2, X, Pencil, Trash2
@@ -18,9 +18,8 @@ const rsvpBadge = (status: string) => {
   return <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full"><Clock className="w-3 h-3" />미응답</span>;
 };
 
-interface Row extends Invitee {
-  _open?: boolean;
-}
+interface Row extends Invitee { _open?: boolean; }
+interface MenuPos { x: number; y: number; id: string; }
 
 export default function InviteesPage() {
   const [rows, setRows] = useState<Row[]>([]);
@@ -30,6 +29,10 @@ export default function InviteesPage() {
   const [phone4Search, setPhone4Search] = useState('');
   const [page, setPage] = useState(1);
 
+  // 체크박스 선택
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const allChecked = rows.length > 0 && rows.every(r => selected.has(r.id));
+
   // 추가 모달
   const [addOpen, setAddOpen] = useState(false);
   const [addName, setAddName] = useState('');
@@ -37,13 +40,13 @@ export default function InviteesPage() {
   const [addPhone4, setAddPhone4] = useState('');
   const [addLoading, setAddLoading] = useState(false);
 
-  // CSV 업로드
+  // CSV
   const csvRef = useRef<HTMLInputElement>(null);
   const [csvLoading, setCsvLoading] = useState(false);
   const [csvMsg, setCsvMsg] = useState('');
 
-  // 메뉴 열림 상태
-  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  // 드롭다운 (fixed 포지션)
+  const [menu, setMenu] = useState<MenuPos | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   // 수정 모달
@@ -53,7 +56,7 @@ export default function InviteesPage() {
   const [editPhone4, setEditPhone4] = useState('');
   const [editLoading, setEditLoading] = useState(false);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({ page: String(page) });
@@ -65,9 +68,15 @@ export default function InviteesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, search, phone4Search]);
 
-  useEffect(() => { fetchData(); }, [page, search, phone4Search]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  // 드롭다운 열기 (버튼 위치 계산)
+  const openMenu = (e: React.MouseEvent, id: string) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    setMenu({ x: rect.right, y: rect.bottom, id });
+  };
 
   const copyLink = (token: string) => {
     navigator.clipboard.writeText(`${APP_URL}/invite/${token}`);
@@ -84,36 +93,30 @@ export default function InviteesPage() {
       body: JSON.stringify({ name: addName, grade: addGrade || null, phone_last4: addPhone4 }),
     });
     const d = await res.json();
-    if (d.success) {
-      setAddOpen(false); setAddName(''); setAddGrade(''); setAddPhone4('');
-      fetchData();
-    }
+    if (d.success) { setAddOpen(false); setAddName(''); setAddGrade(''); setAddPhone4(''); fetchData(); }
     setAddLoading(false);
   };
 
   const handleCsvUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setCsvLoading(true);
-    setCsvMsg('');
+    setCsvLoading(true); setCsvMsg('');
     Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
+      header: true, skipEmptyLines: true,
       complete: async (result) => {
-        const rows = (result.data as Record<string, string>[]).map((r) => ({
+        const rows = (result.data as Record<string, string>[]).map(r => ({
           name: r['이름'] ?? r['name'] ?? '',
+          grade: r['등급'] ?? r['grade'] ?? '',
           phone_last4: r['전화번호뒤4자리'] ?? r['phone_last4'] ?? '',
           notes: r['메모'] ?? r['notes'] ?? '',
         }));
         const res = await fetch('/api/admin/invitees/bulk', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ rows }),
         });
         const d = await res.json();
         setCsvMsg(d.success ? `${d.inserted}명 등록 완료` : d.error);
-        setCsvLoading(false);
-        fetchData();
+        setCsvLoading(false); fetchData();
       },
     });
     e.target.value = '';
@@ -122,21 +125,23 @@ export default function InviteesPage() {
   const handlePatch = async (id: string, payload: object) => {
     setActionLoading(id);
     await fetch('/api/admin/invitees', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, ...payload }),
     });
-    setActionLoading(null);
-    setOpenMenu(null);
+    setActionLoading(null); setMenu(null); fetchData();
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`"${name}" 님을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) return;
+    setMenu(null);
+    await fetch(`/api/admin/invitees?id=${id}`, { method: 'DELETE' });
     fetchData();
   };
 
   const openEdit = (row: Row) => {
-    setEditTarget(row);
-    setEditName(row.name);
-    setEditGrade((row.grade as Grade) ?? '');
-    setEditPhone4(row.phone_last4 ?? '');
-    setOpenMenu(null);
+    setEditTarget(row); setEditName(row.name);
+    setEditGrade((row.grade as Grade) ?? ''); setEditPhone4(row.phone_last4 ?? '');
+    setMenu(null);
   };
 
   const handleEdit = async (e: React.FormEvent) => {
@@ -144,28 +149,37 @@ export default function InviteesPage() {
     if (!editTarget) return;
     setEditLoading(true);
     await fetch('/api/admin/invitees', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: editTarget.id,
-        name: editName.trim(),
-        grade: editGrade || null,
-        phone_last4: editPhone4 || null,
-      }),
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: editTarget.id, name: editName.trim(), grade: editGrade || null, phone_last4: editPhone4 || null }),
     });
-    setEditLoading(false);
-    setEditTarget(null);
-    fetchData();
+    setEditLoading(false); setEditTarget(null); fetchData();
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`"${name}" 님을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) return;
-    setOpenMenu(null);
-    await fetch(`/api/admin/invitees?id=${id}`, { method: 'DELETE' });
-    fetchData();
+  // 일괄 액션
+  const bulkAction = async (action: 'delete' | 'attending' | 'declined') => {
+    const ids = Array.from(selected);
+    if (action === 'delete') {
+      if (!confirm(`선택한 ${ids.length}명을 삭제하시겠습니까?`)) return;
+      await Promise.all(ids.map(id => fetch(`/api/admin/invitees?id=${id}`, { method: 'DELETE' })));
+    } else {
+      await Promise.all(ids.map(id => fetch('/api/admin/invitees', {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, rsvp_status: action }),
+      })));
+    }
+    setSelected(new Set()); fetchData();
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelected(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
+  };
+
+  const toggleAll = () => {
+    setSelected(allChecked ? new Set() : new Set(rows.map(r => r.id)));
   };
 
   const totalPages = Math.ceil(total / 50);
+  const menuRow = menu ? rows.find(r => r.id === menu.id) : null;
 
   return (
     <div>
@@ -175,10 +189,10 @@ export default function InviteesPage() {
           <button onClick={() => setAddOpen(true)} className="flex items-center gap-1.5 px-3 py-2 bg-[#006241] text-white rounded-lg text-sm font-medium hover:bg-green-800 transition-colors">
             <Plus className="w-4 h-4" /> 추가
           </button>
-          <button onClick={() => csvRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
+          <button onClick={() => csvRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">
             {csvLoading ? <LoadingSpinner size="sm" /> : <Upload className="w-4 h-4" />} CSV 업로드
           </button>
-          <a href="/api/admin/export" download className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
+          <a href="/api/admin/export" download className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">
             <Download className="w-4 h-4" /> CSV 다운로드
           </a>
           <input ref={csvRef} type="file" accept=".csv" onChange={handleCsvUpload} className="hidden" />
@@ -191,23 +205,31 @@ export default function InviteesPage() {
       <div className="flex gap-2 mb-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            placeholder="이름 검색"
-            className="input-field pl-9 py-2.5"
-          />
+          <input type="text" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} placeholder="이름 검색" className="input-field pl-9 py-2.5" />
         </div>
-        <input
-          type="tel"
-          value={phone4Search}
-          onChange={(e) => { setPhone4Search(e.target.value.replace(/\D/g, '').slice(0, 4)); setPage(1); }}
-          placeholder="뒤 4자리"
-          className="input-field w-28 py-2.5"
-          maxLength={4}
-        />
+        <input type="tel" value={phone4Search} onChange={(e) => { setPhone4Search(e.target.value.replace(/\D/g, '').slice(0, 4)); setPage(1); }} placeholder="뒤 4자리" className="input-field w-28 py-2.5" maxLength={4} />
       </div>
+
+      {/* 일괄 액션 바 */}
+      {selected.size > 0 && (
+        <div className="mb-3 flex items-center gap-2 px-4 py-3 bg-blue-50 rounded-xl border border-blue-100 animate-fade-in flex-wrap">
+          <span className="text-sm font-medium text-blue-700">{selected.size}명 선택됨</span>
+          <div className="flex gap-2 ml-auto flex-wrap">
+            <button onClick={() => bulkAction('attending')} className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs font-medium hover:bg-green-700">
+              <CheckCircle2 className="w-3.5 h-3.5" /> 참석 처리
+            </button>
+            <button onClick={() => bulkAction('declined')} className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-500 text-white rounded-lg text-xs font-medium hover:bg-gray-600">
+              <XCircle className="w-3.5 h-3.5" /> 불참 처리
+            </button>
+            <button onClick={() => bulkAction('delete')} className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs font-medium hover:bg-red-600">
+              <Trash2 className="w-3.5 h-3.5" /> 일괄 삭제
+            </button>
+            <button onClick={() => setSelected(new Set())} className="px-3 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-50">
+              선택 해제
+            </button>
+          </div>
+        </div>
+      )}
 
       <p className="text-sm text-gray-400 mb-3">전체 {total.toLocaleString()}명</p>
 
@@ -216,6 +238,9 @@ export default function InviteesPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 text-xs text-gray-400 font-medium">
+              <th className="px-4 py-3 text-left w-10">
+                <input type="checkbox" checked={allChecked} onChange={toggleAll} className="rounded" />
+              </th>
               <th className="px-4 py-3 text-left">이름</th>
               <th className="px-4 py-3 text-left">등급</th>
               <th className="px-4 py-3 text-left">전화 뒤4</th>
@@ -230,79 +255,42 @@ export default function InviteesPage() {
             {loading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i} className="border-b border-gray-50">
-                  {Array.from({ length: 7 }).map((_, j) => (
+                  {Array.from({ length: 9 }).map((_, j) => (
                     <td key={j} className="px-4 py-3"><div className="skeleton h-4 rounded" /></td>
                   ))}
                 </tr>
               ))
             ) : rows.length === 0 ? (
-              <tr><td colSpan={7} className="px-4 py-10 text-center text-gray-400">데이터가 없습니다.</td></tr>
+              <tr><td colSpan={9} className="px-4 py-10 text-center text-gray-400">데이터가 없습니다.</td></tr>
             ) : rows.map((row) => (
-              <tr key={row.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+              <tr key={row.id} className={`border-b border-gray-50 hover:bg-gray-50/50 transition-colors ${selected.has(row.id) ? 'bg-blue-50/40' : ''}`}>
+                <td className="px-4 py-3">
+                  <input type="checkbox" checked={selected.has(row.id)} onChange={() => toggleSelect(row.id)} className="rounded" />
+                </td>
                 <td className="px-4 py-3 font-medium text-gray-900">{row.name}</td>
                 <td className="px-4 py-3">
-                  {row.grade ? (
-                    <span className="text-xs font-bold text-[#006241] bg-green-50 px-2 py-0.5 rounded-full">{row.grade}</span>
-                  ) : <span className="text-gray-400 text-xs">-</span>}
+                  {row.grade
+                    ? <span className="text-xs font-bold text-[#006241] bg-green-50 px-2 py-0.5 rounded-full">{row.grade}</span>
+                    : <span className="text-gray-400 text-xs">-</span>}
                 </td>
                 <td className="px-4 py-3 text-gray-500">{row.phone_last4 ?? '-'}</td>
                 <td className="px-4 py-3">{rsvpBadge(row.rsvp_status)}</td>
                 <td className="px-4 py-3">
-                  {row.qr_token_raw
-                    ? <span className="text-xs text-green-600 font-medium">발급됨</span>
-                    : <span className="text-xs text-gray-400">-</span>}
+                  {row.qr_token_raw ? <span className="text-xs text-green-600 font-medium">발급됨</span> : <span className="text-xs text-gray-400">-</span>}
                 </td>
                 <td className="px-4 py-3">
-                  {row.checked_in
-                    ? <span className="inline-flex items-center gap-1 text-xs text-[#006241] font-medium"><LogIn className="w-3 h-3" />완료</span>
-                    : <span className="text-xs text-gray-400">-</span>}
+                  {row.checked_in ? <span className="inline-flex items-center gap-1 text-xs text-[#006241] font-medium"><LogIn className="w-3 h-3" />완료</span> : <span className="text-xs text-gray-400">-</span>}
                 </td>
                 <td className="px-4 py-3 text-gray-400 text-xs">
                   {row.checked_in_at ? new Date(row.checked_in_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) : '-'}
                 </td>
-                <td className="px-4 py-3 text-right relative">
+                <td className="px-4 py-3 text-right">
                   <button
-                    onClick={() => setOpenMenu(openMenu === row.id ? null : row.id)}
+                    onClick={(e) => openMenu(e, row.id)}
                     className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
                   >
                     <MoreVertical className="w-4 h-4 text-gray-400" />
                   </button>
-                  {openMenu === row.id && (
-                    <div className="absolute right-4 top-10 z-20 bg-white rounded-xl shadow-lg border border-gray-100 py-1 min-w-40">
-                      <button onClick={() => openEdit(row)} className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
-                        <Pencil className="w-4 h-4 text-blue-500" /> 정보 수정
-                      </button>
-                      <button onClick={() => copyLink(row.invitation_token)} className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
-                        <Link2 className="w-4 h-4" /> 초대 링크 복사
-                      </button>
-                      <button onClick={() => handlePatch(row.id, { rsvp_status: 'attending', reissue_qr: false })} className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
-                        <CheckCircle2 className="w-4 h-4 text-green-600" /> 참석으로 변경
-                      </button>
-                      <button onClick={() => handlePatch(row.id, { rsvp_status: 'declined' })} className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
-                        <XCircle className="w-4 h-4 text-red-500" /> 불참으로 변경
-                      </button>
-                      {row.rsvp_status === 'attending' && (
-                        <button onClick={() => handlePatch(row.id, { reissue_qr: true })} className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
-                          <RefreshCw className="w-4 h-4 text-blue-500" /> QR 재발급
-                        </button>
-                      )}
-                      {!row.checked_in && row.rsvp_status === 'attending' && (
-                        <button onClick={() => handlePatch(row.id, { checked_in: true })} className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
-                          <LogIn className="w-4 h-4 text-[#006241]" /> 입장 처리
-                        </button>
-                      )}
-                      {row.checked_in && (
-                        <button onClick={() => handlePatch(row.id, { checked_in: false })} className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50">
-                          <X className="w-4 h-4" /> 입장 취소
-                        </button>
-                      )}
-                      <div className="border-t border-gray-100 my-1" />
-                      <button onClick={() => handleDelete(row.id, row.name)} className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50">
-                        <Trash2 className="w-4 h-4" /> 삭제
-                      </button>
-                      {actionLoading === row.id && <div className="flex justify-center py-2"><LoadingSpinner size="sm" /></div>}
-                    </div>
-                  )}
                 </td>
               </tr>
             ))}
@@ -321,6 +309,50 @@ export default function InviteesPage() {
         </div>
       )}
 
+      {/* ─── 드롭다운 메뉴 (fixed 포지션) ─── */}
+      {menu && menuRow && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setMenu(null)} />
+          <div
+            className="fixed z-50 bg-white rounded-xl shadow-xl border border-gray-100 py-1 min-w-44"
+            style={{ top: menu.y + 4, right: window.innerWidth - menu.x }}
+          >
+            <button onClick={() => openEdit(menuRow)} className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+              <Pencil className="w-4 h-4 text-blue-500" /> 정보 수정
+            </button>
+            <button onClick={() => copyLink(menuRow.invitation_token)} className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+              <Link2 className="w-4 h-4" /> 초대 링크 복사
+            </button>
+            <button onClick={() => handlePatch(menuRow.id, { rsvp_status: 'attending' })} className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+              <CheckCircle2 className="w-4 h-4 text-green-600" /> 참석으로 변경
+            </button>
+            <button onClick={() => handlePatch(menuRow.id, { rsvp_status: 'declined' })} className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+              <XCircle className="w-4 h-4 text-red-500" /> 불참으로 변경
+            </button>
+            {menuRow.rsvp_status === 'attending' && (
+              <button onClick={() => handlePatch(menuRow.id, { reissue_qr: true })} className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                <RefreshCw className="w-4 h-4 text-blue-500" /> QR 재발급
+              </button>
+            )}
+            {!menuRow.checked_in && menuRow.rsvp_status === 'attending' && (
+              <button onClick={() => handlePatch(menuRow.id, { checked_in: true })} className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                <LogIn className="w-4 h-4 text-[#006241]" /> 입장 처리
+              </button>
+            )}
+            {menuRow.checked_in && (
+              <button onClick={() => handlePatch(menuRow.id, { checked_in: false })} className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50">
+                <X className="w-4 h-4" /> 입장 취소
+              </button>
+            )}
+            <div className="border-t border-gray-100 my-1" />
+            <button onClick={() => handleDelete(menuRow.id, menuRow.name)} className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50">
+              <Trash2 className="w-4 h-4" /> 삭제
+            </button>
+            {actionLoading === menuRow.id && <div className="flex justify-center py-2"><LoadingSpinner size="sm" /></div>}
+          </div>
+        </>
+      )}
+
       {/* 추가 모달 */}
       {addOpen && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-4">
@@ -328,7 +360,7 @@ export default function InviteesPage() {
             <h2 className="font-bold text-gray-900 text-lg mb-4">초대자 추가</h2>
             <form onSubmit={handleAdd} className="space-y-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">등급 *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">등급</label>
                 <div className="grid grid-cols-4 gap-1.5">
                   {GRADES.map((g) => (
                     <button key={g} type="button" onClick={() => setAddGrade(g)}
@@ -392,9 +424,6 @@ export default function InviteesPage() {
           </div>
         </div>
       )}
-
-      {/* 외부 클릭으로 메뉴 닫기 */}
-      {openMenu && <div className="fixed inset-0 z-10" onClick={() => setOpenMenu(null)} />}
     </div>
   );
 }
