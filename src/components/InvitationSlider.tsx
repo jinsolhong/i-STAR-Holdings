@@ -13,7 +13,6 @@ export default function InvitationSlider({ onSlideChange }: Props) {
   const [current, setCurrent] = useState(0);
   const [muted, setMuted] = useState(true);
   const [videoBlocked, setVideoBlocked] = useState(false);
-  const [userInteracted, setUserInteracted] = useState(false);
 
   const trackRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -23,40 +22,61 @@ export default function InvitationSlider({ onSlideChange }: Props) {
   const isDragging = useRef(false);
   const slides = 2; // 0: 이미지, 1: 영상
 
-  const goTo = useCallback((idx: number, pauseAuto = false) => {
+  // 다음 슬라이드로 이동
+  const goNext = useCallback(() => {
+    setCurrent((prev) => {
+      const next = (prev + 1) % slides;
+      onSlideChange?.(next);
+      return next;
+    });
+  }, [onSlideChange]);
+
+  const goTo = useCallback((idx: number, resetTimer = false) => {
     setCurrent(idx);
     onSlideChange?.(idx);
-    if (pauseAuto) {
+    if (resetTimer) {
+      // 사용자가 직접 조작 시 타이머 초기화 (영상 슬라이드면 타이머 없음)
       if (autoTimer.current) clearTimeout(autoTimer.current);
-      autoTimer.current = setTimeout(() => startAuto(), 5000);
+      if (idx !== 1) {
+        // 이미지 슬라이드면 5초 후 자동 넘김
+        autoTimer.current = setTimeout(goNext, 5000);
+      }
+      // 영상 슬라이드면 onEnded에서 처리
     }
-  }, [onSlideChange]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [onSlideChange, goNext]);
 
-  const startAuto = useCallback(() => {
-    if (autoTimer.current) clearTimeout(autoTimer.current);
-    autoTimer.current = setTimeout(() => {
-      setCurrent((prev) => {
-        const next = (prev + 1) % slides;
-        onSlideChange?.(next);
-        return next;
-      });
-      startAuto();
-    }, 5000);
-  }, [onSlideChange]); // eslint-disable-line react-hooks/exhaustive-deps
-
+  // 초기 자동 슬라이딩: 이미지 슬라이드 5초 후 영상으로
   useEffect(() => {
-    startAuto();
+    autoTimer.current = setTimeout(goNext, 5000);
     return () => { if (autoTimer.current) clearTimeout(autoTimer.current); };
-  }, [startAuto]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 영상 슬라이드가 보이면 자동 재생
+  // 영상 슬라이드가 보이면 자동 재생, 나가면 정지
   useEffect(() => {
     if (current === 1 && videoRef.current) {
-      videoRef.current.play().catch(() => setVideoBlocked(true));
+      // 타이머 정지 (영상 끝날 때까지 슬라이드 안 넘김)
+      if (autoTimer.current) clearTimeout(autoTimer.current);
+      const video = videoRef.current;
+      video.muted = true;
+      video.currentTime = 0;
+      video.play().then(() => {
+        setVideoBlocked(false);
+      }).catch(() => {
+        setVideoBlocked(true);
+      });
     } else if (current !== 1 && videoRef.current) {
       videoRef.current.pause();
+      videoRef.current.currentTime = 0;
     }
   }, [current]);
+
+  // 영상이 끝나면 이미지 슬라이드로 돌아가고 5초 타이머 재시작
+  const handleVideoEnded = useCallback(() => {
+    if (autoTimer.current) clearTimeout(autoTimer.current);
+    setCurrent(0);
+    onSlideChange?.(0);
+    autoTimer.current = setTimeout(goNext, 5000);
+  }, [onSlideChange, goNext]);
 
   // 터치 스와이프
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -86,7 +106,6 @@ export default function InvitationSlider({ onSlideChange }: Props) {
       try {
         await videoRef.current.play();
         setVideoBlocked(false);
-        setUserInteracted(true);
       } catch { /* ignore */ }
     }
   };
@@ -122,11 +141,9 @@ export default function InvitationSlider({ onSlideChange }: Props) {
               className="object-cover"
               priority
               onError={(e) => {
-                // 이미지 없을 때 플레이스홀더
                 (e.target as HTMLImageElement).style.display = 'none';
               }}
             />
-            {/* 이미지 폴백 플레이스홀더 */}
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 -z-10">
               <div className="text-center px-8">
                 <p className="text-[#006241] text-2xl font-bold mb-2">i-STAR</p>
@@ -143,11 +160,11 @@ export default function InvitationSlider({ onSlideChange }: Props) {
               src={EVENT_CONFIG.invitationVideo}
               poster={EVENT_CONFIG.invitationVideoPoster}
               muted
-              autoPlay={false}
               playsInline
-              loop
+              loop={false}
               className="w-full h-full object-cover"
               onError={() => setVideoBlocked(true)}
+              onEnded={handleVideoEnded}
             />
 
             {/* 재생 차단 시 버튼 */}
@@ -167,22 +184,17 @@ export default function InvitationSlider({ onSlideChange }: Props) {
             {current === 1 && (
               <button
                 onClick={toggleMute}
-                className="absolute bottom-4 right-4 w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white transition-opacity"
+                className="absolute bottom-4 right-4 w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white"
                 aria-label={muted ? '소리 켜기' : '소리 끄기'}
               >
-                {muted
-                  ? <VolumeX className="w-4 h-4" />
-                  : <Volume2 className="w-4 h-4" />
-                }
+                {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
               </button>
             )}
 
-            {/* 영상 폴백 플레이스홀더 */}
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 to-gray-700 -z-10">
               <div className="text-center px-8">
                 <p className="text-white text-2xl font-bold mb-2">i-STAR</p>
                 <p className="text-gray-400 text-sm">초대 영상을 교체해 주세요</p>
-                <p className="text-gray-500 text-xs mt-1">public/assets/invitation-video.mp4</p>
               </div>
             </div>
           </div>
