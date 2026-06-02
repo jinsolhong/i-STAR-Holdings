@@ -156,11 +156,22 @@ export default function InviteesPage() {
   };
 
   // 일괄 액션
-  const bulkAction = async (action: 'delete' | 'attending' | 'declined') => {
+  const bulkAction = async (action: 'delete' | 'attending' | 'declined' | 'checkin' | 'reissue_qr') => {
     const ids = Array.from(selected);
     if (action === 'delete') {
       if (!confirm(`선택한 ${ids.length}명을 삭제하시겠습니까?`)) return;
       await Promise.all(ids.map(id => fetch(`/api/admin/invitees?id=${id}`, { method: 'DELETE' })));
+    } else if (action === 'checkin') {
+      await Promise.all(ids.map(id => fetch('/api/admin/invitees', {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, checked_in: true }),
+      })));
+    } else if (action === 'reissue_qr') {
+      if (!confirm(`선택한 ${ids.length}명의 QR을 재발급하시겠습니까?\n기존 QR은 사용 불가가 됩니다.`)) return;
+      await Promise.all(ids.map(id => fetch('/api/admin/invitees', {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, reissue_qr: true }),
+      })));
     } else {
       await Promise.all(ids.map(id => fetch('/api/admin/invitees', {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
@@ -220,6 +231,12 @@ export default function InviteesPage() {
             </button>
             <button onClick={() => bulkAction('declined')} className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-500 text-white rounded-lg text-xs font-medium hover:bg-gray-600">
               <XCircle className="w-3.5 h-3.5" /> 불참 처리
+            </button>
+            <button onClick={() => bulkAction('checkin')} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#006241] text-white rounded-lg text-xs font-medium hover:bg-green-900">
+              <LogIn className="w-3.5 h-3.5" /> 입장 처리
+            </button>
+            <button onClick={() => bulkAction('reissue_qr')} className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700">
+              <RefreshCw className="w-3.5 h-3.5" /> QR 재발급
             </button>
             <button onClick={() => bulkAction('delete')} className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs font-medium hover:bg-red-600">
               <Trash2 className="w-3.5 h-3.5" /> 일괄 삭제
