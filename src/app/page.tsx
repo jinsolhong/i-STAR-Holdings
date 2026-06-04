@@ -63,17 +63,17 @@ function HomeForm() {
 
   return (
     <div
-      className="min-h-dvh flex flex-col items-center justify-center px-6 pb-safe"
+      className="min-h-dvh flex flex-col items-center justify-center px-6 pb-safe relative"
       style={{
-        background: 'linear-gradient(160deg, #0a2e1e 0%, #0d3b26 40%, #092318 100%)',
-        backgroundImage: `
-          radial-gradient(ellipse at 20% 20%, rgba(184,148,74,0.08) 0%, transparent 50%),
-          radial-gradient(ellipse at 80% 80%, rgba(184,148,74,0.06) 0%, transparent 50%),
-          linear-gradient(160deg, #0a2e1e 0%, #0d3b26 40%, #092318 100%)
-        `,
+        backgroundImage: 'url(/assets/home-bg.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center top',
+        backgroundRepeat: 'no-repeat',
       }}
     >
-      <div className="w-full max-w-sm animate-fade-in">
+      {/* 어두운 오버레이 */}
+      <div className="absolute inset-0" style={{ background: 'rgba(5,20,12,0.55)' }} />
+      <div className="w-full max-w-sm animate-fade-in relative" style={{ zIndex: 1 }}>
 
         {/* 골드 장식선 */}
         <div className="flex items-center gap-3 mb-8">
