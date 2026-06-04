@@ -84,13 +84,17 @@ export default function InvitationPage() {
       <div className="px-5 pb-safe pt-8 space-y-6 animate-fade-in">
 
         {/* 개인화 인사 */}
-        <div className="animate-slide-up">
-          <p className="text-[#006241] text-sm font-semibold mb-1">Invitation</p>
-          <h1 className="text-gray-900 leading-snug" style={{ fontFamily: "'Songam', serif", fontSize: '28px', fontWeight: 'normal' }}>
-            <span style={{ color: '#006241' }}>{invitee.name}</span>님,<br />
-            i-STAR의 3주년 행사에<br />초대합니다.
+        <div className="animate-slide-up text-center">
+          <p style={{ fontFamily: "'Songam', serif", fontSize: '15px', fontWeight: 'normal', color: '#B8944A', marginBottom: '2px', letterSpacing: '1px' }}>
+            Invitation
+          </p>
+          <p style={{ fontFamily: "'Songam', serif", fontSize: '18px', fontWeight: 'normal', color: '#B8944A', marginBottom: '12px' }}>
+            {EVENT_CONFIG.sloganEn}
+          </p>
+          <h1 style={{ fontFamily: "'Songam', serif", fontSize: '28px', fontWeight: 'normal', lineHeight: 1.5 }}>
+            <span style={{ color: '#B8944A' }}>{invitee.name}</span>
+            <span style={{ color: '#004d32' }}>님, i-STAR의 3주년 행사에 초대합니다.</span>
           </h1>
-          <p className="mt-2 text-gray-500 text-sm" style={{ fontFamily: "'Songam', serif" }}>{EVENT_CONFIG.sloganEn}</p>
         </div>
 
         {/* 슬라이더 */}
