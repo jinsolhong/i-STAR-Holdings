@@ -11,7 +11,7 @@ interface CsvRow {
   notes?: string;
 }
 
-const VALID_GRADES = ['0STAR','1STAR','2STAR','3STAR','4STAR','5STAR','STAFF'];
+const VALID_GRADES = ['0STAR','1STAR','2STAR','3STAR','4STAR','5STAR','STAFF','외부인사','외부초대','싸인다로'];
 
 export async function POST(req: NextRequest) {
   const session = await getAdminSession();
