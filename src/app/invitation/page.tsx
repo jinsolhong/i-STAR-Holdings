@@ -69,7 +69,10 @@ export default function InvitationPage() {
   if (loading) {
     return (
       <div className="mobile-container min-h-dvh flex items-center justify-center">
-        <LoadingSpinner size="lg" />
+        <div className="flex flex-col items-center gap-4">
+          <LoadingSpinner size="lg" />
+          <p className="text-gray-400 text-sm">초대장을 불러오는 중...</p>
+        </div>
       </div>
     );
   }
@@ -77,39 +80,21 @@ export default function InvitationPage() {
   if (!invitee) return null;
 
   return (
-    <div className="mobile-container animate-fade-in" style={{ background: '#fff' }}>
+    <div className="mobile-container">
+      <div className="px-5 pb-safe pt-8 space-y-6 animate-fade-in">
 
-      {/* ── 이미지/영상 슬라이더: 경계 없이 전체 너비 ── */}
-      <div className="relative w-full overflow-hidden">
-        <InvitationSlider />
-
-        {/* 상단 인사말 오버레이 (이미지 위에 자연스럽게) */}
-        <div
-          className="absolute top-0 left-0 right-0 px-5 pt-10"
-          style={{
-            background: 'linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.15) 60%, transparent 100%)',
-            zIndex: 10,
-          }}
-        >
-          <p className="text-xs font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.75)', letterSpacing: '2px' }}>INVITATION</p>
-          <h1 className="font-bold leading-snug" style={{ color: '#fff', fontSize: '22px', textShadow: '0 1px 8px rgba(0,0,0,0.4)' }}>
-            <span style={{ color: '#f0d99a' }}>{invitee.name}</span>님,<br />
-            i-STAR의 3주년 행사에<br />초대합니다.
+        {/* 개인화 인사 */}
+        <div className="animate-slide-up">
+          <p className="text-[#006241] text-sm font-semibold mb-1">초대장</p>
+          <h1 className="text-2xl font-bold text-gray-900 leading-snug">
+            <span className="text-[#006241]">{invitee.name}</span>님,<br />
+            i-STAR의 3주년 행사에 초대합니다.
           </h1>
-          <p className="mt-2 text-xs" style={{ color: 'rgba(255,255,255,0.6)', fontStyle: 'italic', letterSpacing: '1px' }}>
-            {EVENT_CONFIG.sloganEn}
-          </p>
+          <p className="mt-2 text-gray-500 text-sm">{EVENT_CONFIG.sloganEn}</p>
         </div>
 
-        {/* 하단 그라데이션 페이드 — 배경과 자연스럽게 연결 */}
-        <div
-          className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none"
-          style={{ background: 'linear-gradient(to top, #ffffff 0%, transparent 100%)', zIndex: 10 }}
-        />
-      </div>
-
-      {/* ── 아래 콘텐츠 ── */}
-      <div className="px-5 pb-safe space-y-6">
+        {/* 슬라이더 */}
+        <InvitationSlider />
 
         {/* 행사 정보 카드 */}
         <div className="card space-y-4">
@@ -185,9 +170,10 @@ export default function InvitationPage() {
         )}
 
         {/* 슬로건 */}
-        <div className="text-center py-4">
+        <div className="text-center py-6">
           <p className="text-[#006241] font-medium text-sm">{EVENT_CONFIG.slogan1}</p>
           <p className="text-[#006241] font-medium text-sm">{EVENT_CONFIG.slogan2}</p>
+          <p className="text-gray-300 text-xs mt-2">{EVENT_CONFIG.sloganEn}</p>
         </div>
       </div>
     </div>
