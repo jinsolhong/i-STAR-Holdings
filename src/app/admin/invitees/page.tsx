@@ -99,28 +99,49 @@ export default function InviteesPage() {
     setAddLoading(false);
   };
 
-  const handleCsvUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const parseRows = (raw: Record<string, string>[]) =>
+    raw.map(r => ({
+      name: r['이름'] ?? r['name'] ?? '',
+      grade: r['등급'] ?? r['grade'] ?? '',
+      phone_last4: r['전화번호뒤4자리'] ?? r['phone_last4'] ?? '',
+      notes: r['메모'] ?? r['notes'] ?? '',
+    }));
+
+  const uploadRows = async (rows: ReturnType<typeof parseRows>) => {
+    const res = await fetch('/api/admin/invitees/bulk', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rows }),
+    });
+    const d = await res.json();
+    setCsvMsg(d.success ? `${d.inserted}명 등록 완료` : d.error);
+    setCsvLoading(false);
+    fetchData();
+  };
+
+  const handleCsvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setCsvLoading(true); setCsvMsg('');
-    Papa.parse(file, {
-      header: true, skipEmptyLines: true,
-      complete: async (result) => {
-        const rows = (result.data as Record<string, string>[]).map(r => ({
-          name: r['이름'] ?? r['name'] ?? '',
-          grade: r['등급'] ?? r['grade'] ?? '',
-          phone_last4: r['전화번호뒤4자리'] ?? r['phone_last4'] ?? '',
-          notes: r['메모'] ?? r['notes'] ?? '',
-        }));
-        const res = await fetch('/api/admin/invitees/bulk', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ rows }),
-        });
-        const d = await res.json();
-        setCsvMsg(d.success ? `${d.inserted}명 등록 완료` : d.error);
-        setCsvLoading(false); fetchData();
-      },
-    });
+
+    const isXlsx = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
+
+    if (isXlsx) {
+      // 엑셀 파일 파싱
+      const { read, utils } = await import('xlsx');
+      const buffer = await file.arrayBuffer();
+      const wb = read(buffer);
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const raw = utils.sheet_to_json<Record<string, string>>(ws, { defval: '' });
+      await uploadRows(parseRows(raw));
+    } else {
+      // CSV 파싱
+      Papa.parse(file, {
+        header: true, skipEmptyLines: true,
+        complete: async (result) => {
+          await uploadRows(parseRows(result.data as Record<string, string>[]));
+        },
+      });
+    }
     e.target.value = '';
   };
 
@@ -219,13 +240,13 @@ export default function InviteesPage() {
           <button onClick={() => csvRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">
             {csvLoading ? <LoadingSpinner size="sm" /> : <Upload className="w-4 h-4" />} CSV 업로드
           </button>
-          <a href="/초대자_업로드_양식.csv" download className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">
+          <a href="/초대자_업로드_양식.xlsx" download className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">
             <Download className="w-4 h-4" /> 업로드 양식
           </a>
           <a href="/api/admin/export" download className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">
             <Download className="w-4 h-4" /> 전체 다운로드
           </a>
-          <input ref={csvRef} type="file" accept=".csv" onChange={handleCsvUpload} className="hidden" />
+          <input ref={csvRef} type="file" accept=".csv,.xlsx,.xls" onChange={handleCsvUpload} className="hidden" />
         </div>
       </div>
 
