@@ -93,13 +93,15 @@ export default function InvitationPage() {
           <p style={{ fontFamily: "'Pinyon Script', cursive", fontSize: '52px', color: '#B8944A', lineHeight: 1.25, marginBottom: '16px', fontWeight: 400 }}>
             From Connection<br />To Dream
           </p>
-          {/* 이름 + 인사말 - 송암체 */}
-          <h1 style={{ fontFamily: "'Songam', serif", fontSize: '26px', fontWeight: 'normal', lineHeight: 1.6 }}>
-            <span style={{ color: '#B8944A' }}>{invitee.name}</span>
-            <span style={{ color: '#004d32' }}>님</span>
-            <br />
-            <span style={{ color: '#004d32' }}>i-STAR의 3주년 행사에 초대합니다.</span>
-          </h1>
+          {/* 이름 - 인천교육자람체, 크게 */}
+          <div style={{ fontFamily: "'Incheon', sans-serif", lineHeight: 1.5 }}>
+            <div style={{ fontSize: '38px', color: '#B8944A' }}>
+              {invitee.name}<span style={{ color: '#004d32' }}>님,</span>
+            </div>
+            <div style={{ fontSize: '24px', color: '#004d32' }}>
+              i-STAR의 3주년 행사에 초대합니다.
+            </div>
+          </div>
         </div>
 
         {/* 슬라이더 */}
