@@ -4,9 +4,14 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { ChevronRight, AlertCircle } from 'lucide-react';
+import Image from 'next/image';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { EVENT_CONFIG } from '@/config/event';
 import { GRADES, type Grade } from '@/lib/types';
+
+const BG = '#0a2e1c';
+const GOLD = 'rgba(184,148,74,0.9)';
+const GOLD_DIM = 'rgba(184,148,74,0.4)';
 
 function HomeForm() {
   const router = useRouter();
@@ -62,187 +67,169 @@ function HomeForm() {
   };
 
   return (
-    <div
-      className="min-h-dvh flex flex-col items-center justify-center px-6 pb-safe relative"
-      style={{
-        backgroundImage: 'url(/assets/home-bg.jpg)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center top',
-        backgroundRepeat: 'no-repeat',
-      }}
-    >
-      {/* 어두운 오버레이 */}
-      <div className="absolute inset-0" style={{ background: 'rgba(5,20,12,0.55)' }} />
-      <div className="w-full max-w-sm animate-fade-in relative" style={{ zIndex: 1 }}>
+    <div className="mobile-container min-h-dvh" style={{ background: BG }}>
 
-        {/* 골드 장식선 */}
-        <div className="flex items-center gap-3 mb-8">
-          <div className="flex-1 h-px" style={{ background: 'linear-gradient(to right, transparent, rgba(184,148,74,0.6))' }} />
-          <span style={{ color: 'rgba(184,148,74,0.8)', fontSize: '10px', letterSpacing: '3px' }}>I - STAR</span>
-          <div className="flex-1 h-px" style={{ background: 'linear-gradient(to left, transparent, rgba(184,148,74,0.6))' }} />
-        </div>
-
-        {/* 인사말 */}
-        <div className="mb-8 text-center">
-          <p className="mb-2" style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px', letterSpacing: '1px' }}>
-            {EVENT_CONFIG.greetingLine1}
-          </p>
-          <h1 style={{ color: '#fff', fontSize: '22px', fontWeight: 700, lineHeight: 1.4 }}>
-            {EVENT_CONFIG.name}에<br />당신을 초대합니다.
-          </h1>
-          <p className="mt-3" style={{ color: 'rgba(184,148,74,0.9)', fontSize: '12px', letterSpacing: '1px', fontStyle: 'italic' }}>
-            {EVENT_CONFIG.sloganEn}
-          </p>
-        </div>
-
-        {/* 폼 카드 */}
+      {/* ── 상단: 초대장 이미지 (경계 없이 배경과 연결) ── */}
+      <div className="relative w-full" style={{ aspectRatio: '3/4.2' }}>
+        <Image
+          src={EVENT_CONFIG.invitationCardImage}
+          alt="i-STAR 3주년 초대장"
+          fill
+          className="object-cover"
+          priority
+        />
+        {/* 하단 그라데이션: 이미지 → 배경색으로 자연스럽게 페이드 */}
         <div
-          className="rounded-2xl p-6"
+          className="absolute bottom-0 left-0 right-0 pointer-events-none"
           style={{
-            background: 'rgba(255,255,255,0.05)',
-            border: '1px solid rgba(184,148,74,0.25)',
-            backdropFilter: 'blur(10px)',
+            height: '45%',
+            background: `linear-gradient(to bottom, transparent 0%, ${BG} 100%)`,
           }}
-        >
-          <form onSubmit={handleSubmit} className="space-y-5">
+        />
+      </div>
 
-            {/* 등급 선택 */}
-            <div>
-              <label style={{ color: 'rgba(184,148,74,0.9)', fontSize: '11px', letterSpacing: '1.5px', fontWeight: 600, display: 'block', marginBottom: '10px' }}>
-                등급 선택
-              </label>
-              <div className="flex flex-wrap gap-1.5">
-                {GRADES.map((g) => (
-                  <button
-                    key={g}
-                    type="button"
-                    onClick={() => { setGrade(g); setError(''); }}
-                    className="transition-all"
-                    style={{
-                      padding: '4px 10px',
-                      borderRadius: '20px',
-                      fontSize: '11px',
-                      fontWeight: 600,
-                      border: grade === g
-                        ? '1px solid rgba(184,148,74,0.9)'
-                        : '1px solid rgba(255,255,255,0.2)',
-                      background: grade === g
-                        ? 'rgba(184,148,74,0.2)'
-                        : 'rgba(255,255,255,0.04)',
-                      color: grade === g
-                        ? 'rgba(184,148,74,1)'
-                        : 'rgba(255,255,255,0.6)',
-                    }}
-                  >
-                    {g}
-                  </button>
-                ))}
-              </div>
+      {/* ── 하단: 폼 영역 ── */}
+      <div className="px-6 pb-safe" style={{ marginTop: '-2rem', position: 'relative', zIndex: 1 }}>
+
+        {/* 골드 구분선 */}
+        <div className="flex items-center gap-3 mb-6">
+          <div className="flex-1 h-px" style={{ background: `linear-gradient(to right, transparent, ${GOLD_DIM})` }} />
+          <span style={{ color: GOLD_DIM, fontSize: '9px', letterSpacing: '3px' }}>I - STAR</span>
+          <div className="flex-1 h-px" style={{ background: `linear-gradient(to left, transparent, ${GOLD_DIM})` }} />
+        </div>
+
+        {/* 폼 */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+
+          {/* 등급 선택 */}
+          <div>
+            <label style={{ color: GOLD, fontSize: '11px', letterSpacing: '1.5px', fontWeight: 600, display: 'block', marginBottom: '10px' }}>
+              등급 선택
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              {GRADES.map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() => { setGrade(g); setError(''); }}
+                  style={{
+                    padding: '5px 11px',
+                    borderRadius: '20px',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    border: `1px solid ${grade === g ? GOLD : 'rgba(255,255,255,0.2)'}`,
+                    background: grade === g ? 'rgba(184,148,74,0.18)' : 'rgba(255,255,255,0.05)',
+                    color: grade === g ? GOLD : 'rgba(255,255,255,0.55)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  {g}
+                </button>
+              ))}
             </div>
+          </div>
 
-            {/* 이름 입력 */}
-            <div>
-              <label style={{ color: 'rgba(184,148,74,0.9)', fontSize: '11px', letterSpacing: '1.5px', fontWeight: 600, display: 'block', marginBottom: '8px' }}>
-                사업자 이름
+          {/* 이름 입력 */}
+          <div>
+            <label style={{ color: GOLD, fontSize: '11px', letterSpacing: '1.5px', fontWeight: 600, display: 'block', marginBottom: '8px' }}>
+              사업자 이름
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => { setName(e.target.value); setError(''); }}
+              placeholder="성함을 입력해 주세요."
+              autoComplete="name"
+              readOnly={!!prefillToken && step === 'name'}
+              style={{
+                width: '100%',
+                padding: '13px 16px',
+                borderRadius: '12px',
+                border: `1px solid rgba(184,148,74,0.3)`,
+                background: 'rgba(255,255,255,0.06)',
+                color: '#fff',
+                fontSize: '15px',
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
+              onFocus={e => { e.target.style.borderColor = GOLD; }}
+              onBlur={e => { e.target.style.borderColor = 'rgba(184,148,74,0.3)'; }}
+            />
+          </div>
+
+          {/* 동명이인 구분 */}
+          {step === 'phone' && (
+            <div className="animate-slide-up">
+              <label style={{ color: GOLD, fontSize: '11px', letterSpacing: '1.5px', fontWeight: 600, display: 'block', marginBottom: '8px' }}>
+                휴대전화 번호 뒤 4자리
               </label>
+              <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px', marginBottom: '8px' }}>
+                본인 확인을 위해 입력해 주세요.
+              </p>
               <input
-                type="text"
-                value={name}
-                onChange={(e) => { setName(e.target.value); setError(''); }}
-                placeholder="성함을 입력해 주세요."
-                autoComplete="name"
-                readOnly={!!prefillToken && step === 'name'}
+                type="tel"
+                value={phone4}
+                onChange={(e) => { setPhone4(e.target.value.replace(/\D/g, '').slice(0, 4)); setError(''); }}
+                placeholder="0000"
+                maxLength={4}
+                inputMode="numeric"
+                autoFocus
                 style={{
                   width: '100%',
-                  padding: '12px 14px',
-                  borderRadius: '10px',
-                  border: '1px solid rgba(184,148,74,0.3)',
+                  padding: '13px',
+                  borderRadius: '12px',
+                  border: `1px solid rgba(184,148,74,0.3)`,
                   background: 'rgba(255,255,255,0.06)',
                   color: '#fff',
-                  fontSize: '15px',
+                  fontSize: '20px',
+                  textAlign: 'center',
+                  letterSpacing: '8px',
                   outline: 'none',
                   boxSizing: 'border-box',
                 }}
-                onFocus={e => { e.target.style.borderColor = 'rgba(184,148,74,0.7)'; }}
-                onBlur={e => { e.target.style.borderColor = 'rgba(184,148,74,0.3)'; }}
               />
             </div>
+          )}
 
-            {/* 동명이인 구분 */}
-            {step === 'phone' && (
-              <div className="animate-slide-up">
-                <label style={{ color: 'rgba(184,148,74,0.9)', fontSize: '11px', letterSpacing: '1.5px', fontWeight: 600, display: 'block', marginBottom: '8px' }}>
-                  휴대전화 번호 뒤 4자리
-                </label>
-                <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px', marginBottom: '8px' }}>
-                  본인 확인을 위해 입력해 주세요.
-                </p>
-                <input
-                  type="tel"
-                  value={phone4}
-                  onChange={(e) => { setPhone4(e.target.value.replace(/\D/g, '').slice(0, 4)); setError(''); }}
-                  placeholder="0000"
-                  maxLength={4}
-                  inputMode="numeric"
-                  autoFocus
-                  style={{
-                    width: '100%',
-                    padding: '12px 14px',
-                    borderRadius: '10px',
-                    border: '1px solid rgba(184,148,74,0.3)',
-                    background: 'rgba(255,255,255,0.06)',
-                    color: '#fff',
-                    fontSize: '20px',
-                    textAlign: 'center',
-                    letterSpacing: '8px',
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                  }}
-                />
-              </div>
-            )}
+          {/* 오류 */}
+          {error && (
+            <div className="flex items-start gap-2 animate-fade-in" style={{ padding: '10px 12px', borderRadius: '10px', background: 'rgba(220,50,50,0.15)', border: '1px solid rgba(220,50,50,0.3)' }}>
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#f87171' }} />
+              <p style={{ color: '#fca5a5', fontSize: '13px', lineHeight: 1.5 }} className="whitespace-pre-line">{error}</p>
+            </div>
+          )}
 
-            {/* 오류 */}
-            {error && (
-              <div className="flex items-start gap-2 animate-fade-in" style={{ padding: '10px 12px', borderRadius: '10px', background: 'rgba(220,50,50,0.15)', border: '1px solid rgba(220,50,50,0.3)' }}>
-                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#f87171' }} />
-                <p style={{ color: '#fca5a5', fontSize: '13px', lineHeight: 1.5 }} className="whitespace-pre-line">{error}</p>
-              </div>
-            )}
-
-            {/* 버튼 */}
-            <button
-              type="submit"
-              disabled={loading || !name.trim() || !grade || (step === 'phone' && phone4.length !== 4)}
-              className="w-full flex items-center justify-center gap-2 transition-all"
-              style={{
-                padding: '14px',
-                borderRadius: '12px',
-                background: (!name.trim() || !grade)
-                  ? 'rgba(255,255,255,0.1)'
-                  : 'linear-gradient(135deg, rgba(184,148,74,0.9), rgba(204,168,94,0.9))',
-                color: (!name.trim() || !grade) ? 'rgba(255,255,255,0.3)' : '#1a1a1a',
-                fontWeight: 700,
-                fontSize: '15px',
-                border: 'none',
-                cursor: (!name.trim() || !grade) ? 'not-allowed' : 'pointer',
-                letterSpacing: '0.5px',
-              }}
-            >
-              {loading ? <LoadingSpinner size="sm" color="#1a1a1a" /> : (
-                <><span>초대장 확인하기</span><ChevronRight className="w-4 h-4" /></>
-              )}
-            </button>
-          </form>
-        </div>
+          {/* 확인 버튼 */}
+          <button
+            type="submit"
+            disabled={loading || !name.trim() || !grade || (step === 'phone' && phone4.length !== 4)}
+            className="w-full flex items-center justify-center gap-2"
+            style={{
+              padding: '15px',
+              borderRadius: '12px',
+              background: (name.trim() && grade)
+                ? 'linear-gradient(135deg, rgba(184,148,74,0.95), rgba(210,175,100,0.95))'
+                : 'rgba(255,255,255,0.1)',
+              color: (name.trim() && grade) ? '#1a1a1a' : 'rgba(255,255,255,0.3)',
+              fontWeight: 700,
+              fontSize: '15px',
+              border: 'none',
+              cursor: (name.trim() && grade) ? 'pointer' : 'not-allowed',
+              letterSpacing: '0.5px',
+              transition: 'all 0.2s',
+            }}
+          >
+            {loading
+              ? <LoadingSpinner size="sm" color="#1a1a1a" />
+              : <><span>초대장 확인하기</span><ChevronRight className="w-4 h-4" /></>
+            }
+          </button>
+        </form>
 
         {/* 하단 행사 정보 */}
-        <div className="mt-8 text-center">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="flex-1 h-px" style={{ background: 'rgba(184,148,74,0.2)' }} />
-            <div className="flex-1 h-px" style={{ background: 'rgba(184,148,74,0.2)' }} />
-          </div>
-          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '11px', letterSpacing: '1px' }}>
+        <div className="mt-8 mb-4 text-center">
+          <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: '11px', letterSpacing: '0.5px' }}>
             {EVENT_CONFIG.dateDisplay} · {EVENT_CONFIG.venue}
           </p>
         </div>
@@ -254,8 +241,8 @@ function HomeForm() {
 export default function HomePage() {
   return (
     <Suspense fallback={
-      <div className="min-h-dvh flex items-center justify-center" style={{ background: '#0a2e1e' }}>
-        <LoadingSpinner size="lg" color="rgba(184,148,74,0.8)" />
+      <div className="mobile-container min-h-dvh flex items-center justify-center" style={{ background: BG }}>
+        <LoadingSpinner size="lg" color={GOLD} />
       </div>
     }>
       <HomeForm />
