@@ -162,7 +162,7 @@ export default function InvitationSlider({ onSlideChange }: Props) {
               muted
               playsInline
               loop={false}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
               onError={() => setVideoBlocked(true)}
               onEnded={handleVideoEnded}
             />
