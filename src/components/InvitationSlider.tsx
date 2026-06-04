@@ -129,8 +129,8 @@ export default function InvitationSlider({ onSlideChange }: Props) {
       >
         <div
           ref={trackRef}
-          className="slider-track h-full"
-          style={{ transform: `translateX(-${current * 100}%)` }}
+          className="slider-track"
+          style={{ transform: `translateX(-${current * 100}%)`, height: '100%' }}
         >
           {/* 슬라이드 1: 초대장 이미지 */}
           <div className="slider-slide h-full relative bg-gray-100">
@@ -158,11 +158,11 @@ export default function InvitationSlider({ onSlideChange }: Props) {
             <video
               ref={videoRef}
               src={EVENT_CONFIG.invitationVideo}
-              poster={EVENT_CONFIG.invitationVideoPoster}
               muted
               playsInline
               loop={false}
               className="w-full h-full object-contain"
+              style={{ backgroundColor: '#000' }}
               onError={() => setVideoBlocked(true)}
               onEnded={handleVideoEnded}
             />
