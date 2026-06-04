@@ -124,7 +124,7 @@ body {
 /* 입력창 */
 .input-field {
   width: 100%;
-  padding: 0.875rem 1rem;
+  padding: 0.875rem 1rem !important;
   border: 1.5px solid var(--border);
   border-radius: 10px;
   font-size: 1rem;
@@ -134,6 +134,27 @@ body {
   transition: border-color 0.2s, box-shadow 0.2s;
   outline: none;
   min-height: 52px;
+  box-sizing: border-box;
+}
+
+/* 아이콘 포함 입력창 래퍼 */
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-icon .icon {
+  position: absolute;
+  left: 0.875rem;
+  pointer-events: none;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.input-with-icon .input-field {
+  padding-left: 2.5rem !important;
 }
 
 .input-field:focus {

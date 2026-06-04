@@ -53,13 +53,13 @@ export default function AdminLoginPage() {
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-md p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">이메일</label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <div className="input-with-icon">
+              <Mail className="icon w-4 h-4" />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="input-field pl-10"
+                className="input-field"
                 placeholder="admin@example.com"
                 autoComplete="email"
                 required
@@ -69,13 +69,14 @@ export default function AdminLoginPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">비밀번호</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <div className="input-with-icon">
+              <Lock className="icon w-4 h-4" />
               <input
                 type={showPw ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="input-field pl-10 pr-10"
+                className="input-field"
+                style={{ paddingRight: '2.5rem' }}
                 placeholder="비밀번호"
                 autoComplete="current-password"
                 required
@@ -83,7 +84,7 @@ export default function AdminLoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPw(!showPw)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                className="absolute right-3 text-gray-400"
               >
                 {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
