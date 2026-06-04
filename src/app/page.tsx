@@ -72,7 +72,7 @@ function HomeForm() {
       {/* ── 상단: 초대장 이미지 (경계 없이 배경과 연결) ── */}
       <div className="relative w-full" style={{ aspectRatio: '3/4.2' }}>
         <Image
-          src={EVENT_CONFIG.invitationCardImage}
+          src={EVENT_CONFIG.homeBgImage}
           alt="i-STAR 3주년 초대장"
           fill
           className="object-cover"

@@ -37,6 +37,7 @@ export const EVENT_CONFIG = {
   // ── 이미지 / 영상 경로 ───────────────────────────────────────
   // ※ public/assets/ 폴더에 해당 파일을 넣으세요.
   invitationCardImage: '/assets/invitation-card.jpg',
+  homeBgImage: '/assets/home-bg.jpg',  // 홈 화면 상단 배경 이미지
   invitationVideo: 'https://wcbkgwijkkjkycsltnlv.supabase.co/storage/v1/object/public/assets/invitation-video.mp4',
   invitationVideoPoster: '/assets/invitation-video-poster.jpg',
 
