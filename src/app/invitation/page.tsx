@@ -89,8 +89,8 @@ export default function InvitationPage() {
           <p style={{ fontFamily: 'Pretendard, sans-serif', fontSize: '13px', fontWeight: 600, color: '#004d32', letterSpacing: '3px', marginBottom: '6px' }}>
             Invitation
           </p>
-          {/* From Connection To Dream - 스크립트 폰트, 크게 */}
-          <p style={{ fontFamily: "'Great Vibes', cursive", fontSize: '38px', color: '#B8944A', lineHeight: 1.3, marginBottom: '16px' }}>
+          {/* From Connection To Dream - Pinyon Script (Zapfino 유사), 크고 얇게 */}
+          <p style={{ fontFamily: "'Pinyon Script', cursive", fontSize: '52px', color: '#B8944A', lineHeight: 1.25, marginBottom: '16px', fontWeight: 400 }}>
             From Connection<br />To Dream
           </p>
           {/* 이름 + 인사말 - 송암체 */}
