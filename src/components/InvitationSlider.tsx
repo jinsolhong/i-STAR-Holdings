@@ -121,7 +121,7 @@ export default function InvitationSlider({ onSlideChange }: Props) {
     <div className="w-full">
       {/* 슬라이더 */}
       <div
-        className="slider-container rounded-2xl overflow-hidden shadow-md"
+        className="slider-container overflow-hidden"
         style={{ aspectRatio: '3/4' }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
