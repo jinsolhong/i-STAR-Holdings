@@ -157,6 +157,20 @@ export default function InviteesPage() {
     setEditLoading(false); setEditTarget(null); fetchData();
   };
 
+  // 등급 일괄 지정
+  const [bulkGradeOpen, setBulkGradeOpen] = useState(false);
+
+  const bulkSetGrade = async (grade: Grade) => {
+    const ids = Array.from(selected);
+    await Promise.all(ids.map(id => fetch('/api/admin/invitees', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, grade }),
+    })));
+    setBulkGradeOpen(false);
+    setSelected(new Set());
+    fetchData();
+  };
+
   // 일괄 액션
   const bulkAction = async (action: 'delete' | 'attending' | 'declined' | 'checkin' | 'reissue_qr') => {
     const ids = Array.from(selected);
@@ -205,8 +219,11 @@ export default function InviteesPage() {
           <button onClick={() => csvRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">
             {csvLoading ? <LoadingSpinner size="sm" /> : <Upload className="w-4 h-4" />} CSV 업로드
           </button>
+          <a href="/초대자_업로드_양식.csv" download className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">
+            <Download className="w-4 h-4" /> 업로드 양식
+          </a>
           <a href="/api/admin/export" download className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">
-            <Download className="w-4 h-4" /> CSV 다운로드
+            <Download className="w-4 h-4" /> 전체 다운로드
           </a>
           <input ref={csvRef} type="file" accept=".csv" onChange={handleCsvUpload} className="hidden" />
         </div>
@@ -258,27 +275,54 @@ export default function InviteesPage() {
 
       {/* 일괄 액션 바 */}
       {selected.size > 0 && (
-        <div className="mb-3 flex items-center gap-2 px-4 py-3 bg-blue-50 rounded-xl border border-blue-100 animate-fade-in flex-wrap">
-          <span className="text-sm font-medium text-blue-700">{selected.size}명 선택됨</span>
-          <div className="flex gap-2 ml-auto flex-wrap">
-            <button onClick={() => bulkAction('attending')} className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs font-medium hover:bg-green-700">
-              <CheckCircle2 className="w-3.5 h-3.5" /> 참석 처리
-            </button>
-            <button onClick={() => bulkAction('declined')} className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-500 text-white rounded-lg text-xs font-medium hover:bg-gray-600">
-              <XCircle className="w-3.5 h-3.5" /> 불참 처리
-            </button>
-            <button onClick={() => bulkAction('checkin')} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#006241] text-white rounded-lg text-xs font-medium hover:bg-green-900">
-              <LogIn className="w-3.5 h-3.5" /> 입장 처리
-            </button>
-            <button onClick={() => bulkAction('reissue_qr')} className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700">
-              <RefreshCw className="w-3.5 h-3.5" /> QR 재발급
-            </button>
-            <button onClick={() => bulkAction('delete')} className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs font-medium hover:bg-red-600">
-              <Trash2 className="w-3.5 h-3.5" /> 일괄 삭제
-            </button>
-            <button onClick={() => setSelected(new Set())} className="px-3 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-50">
-              선택 해제
-            </button>
+        <div className="mb-3 px-4 py-3 bg-blue-50 rounded-xl border border-blue-100 animate-fade-in">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm font-medium text-blue-700">{selected.size}명 선택됨</span>
+            <div className="flex gap-2 ml-auto flex-wrap">
+              {/* 등급 지정 드롭다운 */}
+              <div className="relative">
+                <button
+                  onClick={() => setBulkGradeOpen(v => !v)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 text-white rounded-lg text-xs font-medium hover:bg-purple-700"
+                >
+                  등급 지정 ▾
+                </button>
+                {bulkGradeOpen && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setBulkGradeOpen(false)} />
+                    <div className="absolute left-0 top-8 z-20 bg-white rounded-xl shadow-xl border border-gray-100 py-1 min-w-32">
+                      {GRADES.map(g => (
+                        <button
+                          key={g}
+                          onClick={() => bulkSetGrade(g)}
+                          className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 font-medium"
+                        >
+                          <span className="text-xs font-bold text-[#006241] bg-green-50 px-1.5 py-0.5 rounded-full">{g}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+              <button onClick={() => bulkAction('attending')} className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs font-medium hover:bg-green-700">
+                <CheckCircle2 className="w-3.5 h-3.5" /> 참석 처리
+              </button>
+              <button onClick={() => bulkAction('declined')} className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-500 text-white rounded-lg text-xs font-medium hover:bg-gray-600">
+                <XCircle className="w-3.5 h-3.5" /> 불참 처리
+              </button>
+              <button onClick={() => bulkAction('checkin')} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#006241] text-white rounded-lg text-xs font-medium hover:bg-green-900">
+                <LogIn className="w-3.5 h-3.5" /> 입장 처리
+              </button>
+              <button onClick={() => bulkAction('reissue_qr')} className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700">
+                <RefreshCw className="w-3.5 h-3.5" /> QR 재발급
+              </button>
+              <button onClick={() => bulkAction('delete')} className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs font-medium hover:bg-red-600">
+                <Trash2 className="w-3.5 h-3.5" /> 일괄 삭제
+              </button>
+              <button onClick={() => setSelected(new Set())} className="px-3 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-50">
+                선택 해제
+              </button>
+            </div>
           </div>
         </div>
       )}
