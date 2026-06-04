@@ -6,9 +6,12 @@ import { v4 as uuidv4 } from 'uuid';
 
 interface CsvRow {
   name: string;
+  grade?: string;
   phone_last4?: string;
   notes?: string;
 }
+
+const VALID_GRADES = ['0STAR','1STAR','2STAR','3STAR','4STAR','5STAR','STAFF'];
 
 export async function POST(req: NextRequest) {
   const session = await getAdminSession();
@@ -23,13 +26,17 @@ export async function POST(req: NextRequest) {
   const supabase = createServiceClient();
   const inserts = rows
     .filter((r) => r.name?.trim())
-    .map((r) => ({
-      id: uuidv4(),
-      name: r.name.trim(),
-      phone_last4: r.phone_last4?.trim() || null,
-      invitation_token: generateToken(24),
-      notes: r.notes?.trim() || null,
-    }));
+    .map((r) => {
+      const grade = r.grade?.trim().toUpperCase();
+      return {
+        id: uuidv4(),
+        name: r.name.trim(),
+        grade: grade && VALID_GRADES.includes(grade) ? grade : null,
+        phone_last4: r.phone_last4?.trim() || null,
+        invitation_token: generateToken(24),
+        notes: r.notes?.trim() || null,
+      };
+    });
 
   const { data, error } = await supabase
     .from('invitees')
