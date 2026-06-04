@@ -86,13 +86,13 @@ export default function InvitationPage() {
         {/* 개인화 인사 */}
         <div className="animate-slide-up text-center">
           {/* Invitation - 기본 Pretendard, 딥그린 */}
-          <p style={{ fontFamily: 'Pretendard, sans-serif', fontSize: '13px', fontWeight: 600, color: '#004d32', letterSpacing: '3px', marginBottom: '6px' }}>
+          <p style={{ fontFamily: 'Pretendard, sans-serif', fontSize: '13px', fontWeight: 600, color: '#004d32', letterSpacing: '3px', marginBottom: '20px' }}>
             Invitation
           </p>
           {/* From Connection To Dream - Zapfino */}
-          <div style={{ marginBottom: '16px' }}>
-            <p style={{ fontFamily: "'Zapfino', cursive", fontSize: '32px', color: '#B8944A', lineHeight: 1.6, margin: 0 }}>From Connection</p>
-            <p style={{ fontFamily: "'Zapfino', cursive", fontSize: '32px', color: '#B8944A', lineHeight: 1.6, margin: 0 }}>To Dream</p>
+          <div style={{ marginBottom: '20px' }}>
+            <p style={{ fontFamily: "'Zapfino', cursive", fontSize: '32px', color: '#B8944A', lineHeight: 1.9, margin: 0 }}>From Connection</p>
+            <p style={{ fontFamily: "'Zapfino', cursive", fontSize: '32px', color: '#B8944A', lineHeight: 1.9, margin: 0 }}>To Dream</p>
           </div>
           {/* 이름 - 인천교육자람체, 가로 프레임 꽉 채움 */}
           <div style={{ fontFamily: "'Incheon', sans-serif", lineHeight: 1.5 }}>
