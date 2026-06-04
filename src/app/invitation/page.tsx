@@ -85,15 +85,20 @@ export default function InvitationPage() {
 
         {/* 개인화 인사 */}
         <div className="animate-slide-up text-center">
-          <p style={{ fontFamily: "'Songam', serif", fontSize: '15px', fontWeight: 'normal', color: '#B8944A', marginBottom: '2px', letterSpacing: '1px' }}>
+          {/* Invitation - 기본 Pretendard, 딥그린 */}
+          <p style={{ fontFamily: 'Pretendard, sans-serif', fontSize: '13px', fontWeight: 600, color: '#004d32', letterSpacing: '3px', marginBottom: '6px' }}>
             Invitation
           </p>
-          <p style={{ fontFamily: "'Songam', serif", fontSize: '18px', fontWeight: 'normal', color: '#B8944A', marginBottom: '12px' }}>
-            {EVENT_CONFIG.sloganEn}
+          {/* From Connection To Dream - 스크립트 폰트, 크게 */}
+          <p style={{ fontFamily: "'Great Vibes', cursive", fontSize: '38px', color: '#B8944A', lineHeight: 1.3, marginBottom: '16px' }}>
+            From Connection<br />To Dream
           </p>
-          <h1 style={{ fontFamily: "'Songam', serif", fontSize: '28px', fontWeight: 'normal', lineHeight: 1.5 }}>
+          {/* 이름 + 인사말 - 송암체 */}
+          <h1 style={{ fontFamily: "'Songam', serif", fontSize: '26px', fontWeight: 'normal', lineHeight: 1.6 }}>
             <span style={{ color: '#B8944A' }}>{invitee.name}</span>
-            <span style={{ color: '#004d32' }}>님, i-STAR의 3주년 행사에 초대합니다.</span>
+            <span style={{ color: '#004d32' }}>님</span>
+            <br />
+            <span style={{ color: '#004d32' }}>i-STAR의 3주년 행사에 초대합니다.</span>
           </h1>
         </div>
 
