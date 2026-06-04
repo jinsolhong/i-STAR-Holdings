@@ -232,12 +232,12 @@ export default function InviteesPage() {
       {csvMsg && <p className={`mb-4 text-sm px-3 py-2 rounded-lg ${csvMsg.includes('완료') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>{csvMsg}</p>}
 
       {/* 검색 */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-1">
         <input
           type="text"
           value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          placeholder="🔍 이름 검색"
+          onChange={(e) => { setSearch(e.target.value); setPage(1); setSelected(new Set()); }}
+          placeholder="이름 검색 (여러 명: 홍길동, 김철수, 이영희)"
           className="input-field py-2.5 sm:col-span-2"
         />
         <input
@@ -249,6 +249,23 @@ export default function InviteesPage() {
           maxLength={4}
         />
       </div>
+      {/* 검색 결과 전체 선택 버튼 */}
+      {(search || phone4Search || gradeFilter) && rows.length > 0 && (
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-xs text-gray-400">검색 결과 {rows.length}명</span>
+          <button
+            onClick={() => setSelected(new Set(rows.map(r => r.id)))}
+            className="text-xs text-[#006241] font-medium hover:underline"
+          >
+            검색 결과 전체 선택
+          </button>
+          {selected.size > 0 && (
+            <button onClick={() => setSelected(new Set())} className="text-xs text-gray-400 hover:underline">
+              선택 해제
+            </button>
+          )}
+        </div>
+      )}
 
       {/* 등급 필터 */}
       <div className="flex gap-1.5 mb-4 flex-wrap">

@@ -31,6 +31,9 @@ export async function GET(req: NextRequest) {
   const limit = 50;
   const offset = (page - 1) * limit;
 
+  // 쉼표로 구분된 여러 이름 처리
+  const names = search.split(',').map(n => n.trim()).filter(Boolean);
+
   const supabase = createServiceClient();
   let query = supabase
     .from('invitees')
@@ -38,7 +41,12 @@ export async function GET(req: NextRequest) {
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
 
-  if (search) query = query.ilike('name', `%${search}%`);
+  if (names.length === 1) {
+    query = query.ilike('name', `%${names[0]}%`);
+  } else if (names.length > 1) {
+    // 여러 이름: OR 조건
+    query = query.or(names.map(n => `name.ilike.%${n}%`).join(','));
+  }
   if (phone4) query = query.eq('phone_last4', phone4);
   if (grade) query = query.eq('grade', grade);
 
