@@ -126,12 +126,33 @@ export default function InviteesPage() {
     const isXlsx = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
 
     if (isXlsx) {
-      // 엑셀 파일 파싱
+      // 엑셀 파일 파싱 (헤더가 3번째 행에 있는 양식 대응)
       const { read, utils } = await import('xlsx');
       const buffer = await file.arrayBuffer();
       const wb = read(buffer);
       const ws = wb.Sheets[wb.SheetNames[0]];
-      const raw = utils.sheet_to_json<Record<string, string>>(ws, { defval: '' });
+
+      // 먼저 헤더 없이 전체 읽기
+      const allRows = utils.sheet_to_json<string[]>(ws, { header: 1, defval: '' });
+
+      // '이름' 컬럼이 있는 행을 헤더로 찾기
+      const headerRowIdx = allRows.findIndex(row =>
+        row.some(cell => String(cell).trim() === '이름')
+      );
+
+      let raw: Record<string, string>[];
+      if (headerRowIdx >= 0) {
+        const headers = allRows[headerRowIdx] as string[];
+        raw = allRows.slice(headerRowIdx + 1)
+          .filter(row => (row as string[]).some(cell => String(cell).trim()))
+          .map(row => {
+            const obj: Record<string, string> = {};
+            headers.forEach((h, i) => { obj[String(h).trim()] = String((row as string[])[i] ?? '').trim(); });
+            return obj;
+          });
+      } else {
+        raw = utils.sheet_to_json<Record<string, string>>(ws, { defval: '' });
+      }
       await uploadRows(parseRows(raw));
     } else {
       // CSV 파싱
