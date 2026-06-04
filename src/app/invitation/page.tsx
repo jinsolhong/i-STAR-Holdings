@@ -85,12 +85,12 @@ export default function InvitationPage() {
 
         {/* 개인화 인사 */}
         <div className="animate-slide-up">
-          <p className="text-[#006241] text-sm font-semibold mb-1">초대장</p>
-          <h1 className="text-2xl font-bold text-gray-900 leading-snug">
-            <span className="text-[#006241]">{invitee.name}</span>님,<br />
-            i-STAR의 3주년 행사에 초대합니다.
+          <p className="text-[#006241] text-sm font-semibold mb-1">Invitation</p>
+          <h1 className="text-gray-900 leading-snug" style={{ fontFamily: "'Songam', serif", fontSize: '28px', fontWeight: 'normal' }}>
+            <span style={{ color: '#006241' }}>{invitee.name}</span>님,<br />
+            i-STAR의 3주년 행사에<br />초대합니다.
           </h1>
-          <p className="mt-2 text-gray-500 text-sm">{EVENT_CONFIG.sloganEn}</p>
+          <p className="mt-2 text-gray-500 text-sm" style={{ fontFamily: "'Songam', serif" }}>{EVENT_CONFIG.sloganEn}</p>
         </div>
 
         {/* 슬라이더 */}
