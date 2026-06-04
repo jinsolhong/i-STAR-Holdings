@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import IStarLogo from '@/components/IStarLogo';
 
@@ -53,30 +53,26 @@ export default function AdminLoginPage() {
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-md p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">이메일</label>
-            <div className="input-with-icon">
-              <Mail className="icon w-4 h-4" />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="input-field"
-                placeholder="admin@example.com"
-                autoComplete="email"
-                required
-              />
-            </div>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="input-field"
+              placeholder="admin@example.com"
+              autoComplete="email"
+              required
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">비밀번호</label>
-            <div className="input-with-icon">
-              <Lock className="icon w-4 h-4" />
+            <div className="relative">
               <input
                 type={showPw ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="input-field"
-                style={{ paddingRight: '2.5rem' }}
+                style={{ paddingRight: '3rem' }}
                 placeholder="비밀번호"
                 autoComplete="current-password"
                 required
@@ -84,7 +80,8 @@ export default function AdminLoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPw(!showPw)}
-                className="absolute right-3 text-gray-400"
+                style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)' }}
+                className="text-gray-400"
               >
                 {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
