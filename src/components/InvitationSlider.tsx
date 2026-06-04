@@ -122,6 +122,7 @@ export default function InvitationSlider({ onSlideChange }: Props) {
       {/* 슬라이더 */}
       <div
         className="slider-container rounded-2xl overflow-hidden shadow-md"
+        style={{ aspectRatio: '3/4' }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -132,19 +133,18 @@ export default function InvitationSlider({ onSlideChange }: Props) {
           style={{ transform: `translateX(-${current * 100}%)` }}
         >
           {/* 슬라이드 1: 초대장 이미지 */}
-          <div className="slider-slide relative bg-gray-100 flex items-center justify-center">
+          <div className="slider-slide h-full relative bg-gray-100">
             <Image
               src={EVENT_CONFIG.invitationCardImage}
               alt="i-STAR 3주년 초대장"
-              width={900}
-              height={1200}
-              className="w-full h-auto block"
+              fill
+              className="object-cover"
               priority
               onError={(e) => {
                 (e.target as HTMLImageElement).style.display = 'none';
               }}
             />
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100" style={{minHeight:'300px',zIndex:-1}}>
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 -z-10">
               <div className="text-center px-8">
                 <p className="text-[#006241] text-2xl font-bold mb-2">i-STAR</p>
                 <p className="text-gray-500 text-sm">초대장 이미지를 교체해 주세요</p>
@@ -154,7 +154,7 @@ export default function InvitationSlider({ onSlideChange }: Props) {
           </div>
 
           {/* 슬라이드 2: 초대 영상 */}
-          <div className="slider-slide relative bg-black flex items-center justify-center">
+          <div className="slider-slide h-full relative bg-black">
             <video
               ref={videoRef}
               src={EVENT_CONFIG.invitationVideo}
@@ -162,7 +162,7 @@ export default function InvitationSlider({ onSlideChange }: Props) {
               muted
               playsInline
               loop={false}
-              className="w-full h-auto block max-h-screen"
+              className="w-full h-full object-cover"
               onError={() => setVideoBlocked(true)}
               onEnded={handleVideoEnded}
             />
