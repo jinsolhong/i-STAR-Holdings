@@ -89,16 +89,16 @@ export default function InvitationPage() {
           <p style={{ fontFamily: 'Pretendard, sans-serif', fontSize: '13px', fontWeight: 600, color: '#004d32', letterSpacing: '3px', marginBottom: '6px' }}>
             Invitation
           </p>
-          {/* From Connection To Dream - Pinyon Script (Zapfino 유사), 크고 얇게 */}
-          <p style={{ fontFamily: "'Pinyon Script', cursive", fontSize: '52px', color: '#B8944A', lineHeight: 1.25, marginBottom: '16px', fontWeight: 400 }}>
+          {/* From Connection To Dream - Zapfino */}
+          <p style={{ fontFamily: "'Zapfino', cursive", fontSize: '44px', color: '#B8944A', lineHeight: 1.4, marginBottom: '16px', fontWeight: 400 }}>
             From Connection<br />To Dream
           </p>
-          {/* 이름 - 인천교육자람체, 크게 */}
+          {/* 이름 - 인천교육자람체, 가로 프레임 꽉 채움 */}
           <div style={{ fontFamily: "'Incheon', sans-serif", lineHeight: 1.5 }}>
-            <div style={{ fontSize: '38px', color: '#B8944A' }}>
+            <div style={{ fontSize: 'clamp(36px, 10vw, 52px)', color: '#B8944A' }}>
               {invitee.name}<span style={{ color: '#004d32' }}>님,</span>
             </div>
-            <div style={{ fontSize: '24px', color: '#004d32' }}>
+            <div style={{ fontSize: 'clamp(20px, 5.5vw, 30px)', color: '#004d32' }}>
               i-STAR의 3주년 행사에 초대합니다.
             </div>
           </div>
