@@ -94,7 +94,7 @@ export default function InvitationPage() {
             <p style={{ fontFamily: "'Zapfino', cursive", fontSize: '22px', color: '#B8944A', lineHeight: 1.9, margin: 0 }}>From Connection To Dream</p>
           </div>
           {/* 이름 - 인천교육자람체, 가로 프레임 꽉 채움 */}
-          <div style={{ fontFamily: "'Incheon', sans-serif", lineHeight: 1.5 }}>
+          <div style={{ fontFamily: 'Pretendard, sans-serif', lineHeight: 1.5 }}>
             <div style={{ fontSize: 'clamp(36px, 10vw, 52px)', color: '#B8944A' }}>
               {invitee.name}<span style={{ color: '#004d32' }}>님,</span>
             </div>
