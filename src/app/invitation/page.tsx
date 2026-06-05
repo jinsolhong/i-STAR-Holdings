@@ -95,10 +95,10 @@ export default function InvitationPage() {
           </div>
           {/* 이름 - 인천교육자람체, 가로 프레임 꽉 채움 */}
           <div style={{ fontFamily: 'Pretendard, sans-serif', lineHeight: 1.5 }}>
-            <div style={{ fontSize: 'clamp(36px, 10vw, 52px)', color: '#B8944A' }}>
+            <div style={{ fontSize: '26px', color: '#B8944A' }}>
               {invitee.name}<span style={{ color: '#004d32' }}>님,</span>
             </div>
-            <div style={{ fontSize: 'clamp(20px, 5.5vw, 30px)', color: '#004d32' }}>
+            <div style={{ fontSize: '18px', color: '#004d32' }}>
               i-STAR의 3주년 행사에 초대합니다.
             </div>
           </div>
