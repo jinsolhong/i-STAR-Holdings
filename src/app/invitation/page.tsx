@@ -91,8 +91,7 @@ export default function InvitationPage() {
           </p>
           {/* From Connection To Dream - Zapfino */}
           <div style={{ marginBottom: '20px' }}>
-            <p style={{ fontFamily: "'Zapfino', cursive", fontSize: '32px', color: '#B8944A', lineHeight: 1.9, margin: 0 }}>From Connection</p>
-            <p style={{ fontFamily: "'Zapfino', cursive", fontSize: '32px', color: '#B8944A', lineHeight: 1.9, margin: 0 }}>To Dream</p>
+            <p style={{ fontFamily: "'Zapfino', cursive", fontSize: '22px', color: '#B8944A', lineHeight: 1.9, margin: 0 }}>From Connection To Dream</p>
           </div>
           {/* 이름 - 인천교육자람체, 가로 프레임 꽉 채움 */}
           <div style={{ fontFamily: "'Incheon', sans-serif", lineHeight: 1.5 }}>
