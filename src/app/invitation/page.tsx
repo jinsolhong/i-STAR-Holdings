@@ -199,18 +199,18 @@ export default function InvitationPage() {
                 <span className="text-xs font-semibold text-[#006241]">14:00 – 16:00</span>
               </div>
               <div className="flex-1 border-l-2 border-[#B8944A] pl-3 pb-2">
-                <p className="font-semibold text-gray-800 text-sm">글로닉스(GLONICS) 런칭쇼</p>
+                <p className="font-semibold text-gray-800 text-sm">글로닉스 런칭쇼</p>
               </div>
             </div>
-            {/* 16:00-18:00 */}
+            {/* 16:00 1부 */}
             <div className="flex gap-3">
               <div className="flex-shrink-0 text-right" style={{ minWidth: '90px' }}>
-                <span className="text-xs font-semibold text-[#006241]">16:00 – 18:00</span>
+                <span className="text-xs font-semibold text-[#006241]">16:00</span>
               </div>
               <div className="flex-1 border-l-2 border-[#B8944A] pl-3 pb-2">
-                <p className="font-semibold text-gray-800 text-sm mb-2">1부 본 행사</p>
+                <p className="font-semibold text-gray-800 text-sm mb-2">1부 본행사</p>
                 <ul className="space-y-1">
-                  {['오프닝', '개회선언', '지난 3년을 회고하며', '회장 개회사', '내빈 이사 소개', '초기 멤버 및 공로 시상', '3스타 헌정 & 스타 승급식', '비전 키노트 선포', '1부 피날레 (케이크 컷팅 및 축전)'].map((item) => (
+                  {['개회선언', '내빈・이사 소개', '시상식 및 승급식', '비전 키노트 선포', '피날레'].map((item) => (
                     <li key={item} className="flex items-start gap-1.5 text-xs text-gray-600">
                       <span className="mt-1 w-1 h-1 rounded-full bg-[#B8944A] flex-shrink-0" />
                       {item}
@@ -219,15 +219,24 @@ export default function InvitationPage() {
                 </ul>
               </div>
             </div>
-            {/* 18:00-21:00 */}
+            {/* 18:00-19:30 */}
             <div className="flex gap-3">
               <div className="flex-shrink-0 text-right" style={{ minWidth: '90px' }}>
-                <span className="text-xs font-semibold text-[#006241]">18:00 – 21:00</span>
+                <span className="text-xs font-semibold text-[#006241]">18:00 – 19:30</span>
+              </div>
+              <div className="flex-1 border-l-2 border-[#B8944A] pl-3 pb-2">
+                <p className="font-semibold text-gray-800 text-sm">만찬 및 건배제의</p>
+              </div>
+            </div>
+            {/* 19:30-21:00 */}
+            <div className="flex gap-3">
+              <div className="flex-shrink-0 text-right" style={{ minWidth: '90px' }}>
+                <span className="text-xs font-semibold text-[#006241]">19:30 – 21:00</span>
               </div>
               <div className="flex-1 border-l-2 border-[#B8944A] pl-3">
-                <p className="font-semibold text-gray-800 text-sm mb-2">2부 행사</p>
+                <p className="font-semibold text-gray-800 text-sm mb-2">2부 행사 및 폐회</p>
                 <ul className="space-y-1">
-                  {['만찬 및 건배제의', '경품 추첨', '축하공연', '클로징 및 폐회'].map((item) => (
+                  {['경품 추첨 및 축하 공연', '폐회식'].map((item) => (
                     <li key={item} className="flex items-start gap-1.5 text-xs text-gray-600">
                       <span className="mt-1 w-1 h-1 rounded-full bg-[#B8944A] flex-shrink-0" />
                       {item}
