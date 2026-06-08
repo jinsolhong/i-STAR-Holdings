@@ -17,9 +17,23 @@ export async function POST(req: NextRequest) {
 
   const supabase = createServiceClient();
 
+  // 6자리 단축 코드 입력 시 전체 토큰으로 변환
+  let fullToken = qr_token.trim();
+  if (fullToken.length <= 6) {
+    const { data: found, error: findError } = await supabase
+      .from('invitees')
+      .select('qr_token_raw')
+      .ilike('qr_token_raw', `%${fullToken.toLowerCase()}`)
+      .single();
+    if (findError || !found) {
+      return NextResponse.json({ success: false, error: '해당 초대권 번호를 찾을 수 없습니다.' }, { status: 404 });
+    }
+    fullToken = found.qr_token_raw;
+  }
+
   // 원자적 체크인 처리 (DB 함수 호출)
   const { data, error } = await supabase.rpc('atomic_checkin', {
-    p_qr_token: qr_token.trim(),
+    p_qr_token: fullToken,
   });
 
   if (error) {

@@ -78,8 +78,8 @@ export default function QRCard({ name, qrToken }: Props) {
       {/* 초대권 번호 */}
       <div>
         <p className="text-xs text-gray-400 mb-1.5">초대권 번호</p>
-        <p className="text-xs font-mono font-medium text-gray-700 tracking-wide break-all bg-gray-50 rounded-lg px-3 py-2 text-center">
-          {qrToken.toUpperCase().match(/.{1,8}/g)?.join(' ')}
+        <p className="text-lg font-mono font-bold text-gray-800 tracking-widest bg-gray-50 rounded-lg px-3 py-2 text-center">
+          {qrToken.slice(-6).toUpperCase()}
         </p>
       </div>
 
