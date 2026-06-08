@@ -4,7 +4,6 @@ import { useEffect, useRef } from 'react';
 import QRCode from 'qrcode';
 import { Calendar, MapPin, User, Ticket } from 'lucide-react';
 import { EVENT_CONFIG } from '@/config/event';
-import { maskToken } from '@/lib/tokens';
 
 interface Props {
   name: string;
@@ -77,11 +76,11 @@ export default function QRCard({ name, qrToken }: Props) {
       <div className="border-t border-dashed border-gray-200 my-4" />
 
       {/* 초대권 번호 */}
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-gray-400">초대권 번호</span>
-        <span className="text-xs font-mono font-medium text-gray-600">
-          {maskToken(qrToken, 6)}
-        </span>
+      <div>
+        <p className="text-xs text-gray-400 mb-1.5">초대권 번호</p>
+        <p className="text-xs font-mono font-medium text-gray-700 tracking-wide break-all bg-gray-50 rounded-lg px-3 py-2 text-center">
+          {qrToken.toUpperCase().match(/.{1,8}/g)?.join(' ')}
+        </p>
       </div>
 
       {/* 안내 문구 */}
