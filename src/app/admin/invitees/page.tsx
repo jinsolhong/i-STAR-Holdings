@@ -8,7 +8,7 @@ import {
 import Papa from 'papaparse';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import type { Invitee } from '@/lib/types';
-import { GRADES, type Grade } from '@/lib/types';
+import { GRADES, GRADE_LABELS, type Grade } from '@/lib/types';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? '';
 
@@ -322,7 +322,7 @@ export default function InviteesPage() {
               gradeFilter === g ? 'bg-[#006241] text-white border-[#006241]' : 'bg-white text-gray-500 border-gray-200 hover:border-[#006241]'
             }`}
           >
-            {g}
+            {GRADE_LABELS[g]}
           </button>
         ))}
       </div>
@@ -351,7 +351,7 @@ export default function InviteesPage() {
                           onClick={() => bulkSetGrade(g)}
                           className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 font-medium"
                         >
-                          <span className="text-xs font-bold text-[#006241] bg-green-50 px-1.5 py-0.5 rounded-full">{g}</span>
+                          <span className="text-xs font-bold text-[#006241] bg-green-50 px-1.5 py-0.5 rounded-full">{GRADE_LABELS[g]}</span>
                         </button>
                       ))}
                     </div>
@@ -420,7 +420,7 @@ export default function InviteesPage() {
                 <td className="px-4 py-3 font-medium text-gray-900">{row.name}</td>
                 <td className="px-4 py-3">
                   {row.grade
-                    ? <span className="text-xs font-bold text-[#006241] bg-green-50 px-2 py-0.5 rounded-full">{row.grade}</span>
+                    ? <span className="text-xs font-bold text-[#006241] bg-green-50 px-2 py-0.5 rounded-full">{GRADE_LABELS[row.grade as Grade]}</span>
                     : <span className="text-gray-400 text-xs">-</span>}
                 </td>
                 <td className="px-4 py-3 text-gray-500">{row.phone_last4 ?? '-'}</td>
@@ -515,7 +515,7 @@ export default function InviteesPage() {
                   {GRADES.map((g) => (
                     <button key={g} type="button" onClick={() => setAddGrade(g)}
                       className={`py-2 rounded-lg text-xs font-bold border transition-all ${addGrade === g ? 'bg-[#006241] text-white border-[#006241]' : 'bg-white text-gray-600 border-gray-200'}`}>
-                      {g}
+                      {GRADE_LABELS[g]}
                     </button>
                   ))}
                 </div>
@@ -551,7 +551,7 @@ export default function InviteesPage() {
                   {GRADES.map((g) => (
                     <button key={g} type="button" onClick={() => setEditGrade(g)}
                       className={`py-2 rounded-lg text-xs font-bold border transition-all ${editGrade === g ? 'bg-[#006241] text-white border-[#006241]' : 'bg-white text-gray-600 border-gray-200'}`}>
-                      {g}
+                      {GRADE_LABELS[g]}
                     </button>
                   ))}
                 </div>
