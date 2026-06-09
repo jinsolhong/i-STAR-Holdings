@@ -7,7 +7,7 @@ import { ChevronRight, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { EVENT_CONFIG } from '@/config/event';
-import { GRADES, type Grade } from '@/lib/types';
+import { GRADES, GRADE_LABELS, type Grade } from '@/lib/types';
 
 const BG = '#0a2e1c';
 const GOLD = 'rgba(184,148,74,0.9)';
@@ -124,7 +124,7 @@ function HomeForm() {
                     transition: 'all 0.2s',
                   }}
                 >
-                  {g}
+                  {GRADE_LABELS[g]}
                 </button>
               ))}
             </div>
