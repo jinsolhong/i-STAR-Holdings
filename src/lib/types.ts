@@ -1,9 +1,9 @@
 export type RsvpStatus = 'pending' | 'attending' | 'declined';
-export type Grade = '0STAR' | '1STAR' | '2STAR' | '3STAR' | '4STAR' | '5STAR' | 'STAFF' | '외부인사' | '외부초대' | '싸인다로';
-export const GRADES: Grade[] = ['0STAR','1STAR','2STAR','3STAR','4STAR','5STAR','STAFF','외부인사','외부초대','싸인다로'];
+export type Grade = '0STAR' | '1STAR' | '2STAR' | '3STAR' | '4STAR' | '5STAR' | 'STAFF' | '싸인다로';
+export const GRADES: Grade[] = ['0STAR','1STAR','2STAR','3STAR','4STAR','5STAR','STAFF','싸인다로'];
 export const GRADE_LABELS: Record<Grade, string> = {
   '0STAR': '0STAR', '1STAR': '1STAR', '2STAR': '2STAR', '3STAR': '3STAR', '4STAR': '4STAR', '5STAR': '5STAR',
-  'STAFF': '임직원', '외부인사': '외부인사', '외부초대': '외부초대', '싸인다로': '싸인다',
+  'STAFF': '임직원', '싸인다로': '싸인다',
 };
 
 export interface Invitee {
