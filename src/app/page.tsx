@@ -229,8 +229,21 @@ function HomeForm() {
 
         {/* 하단 안내 문구 */}
         <div className="mt-8 mb-4 text-center">
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px', letterSpacing: '0.3px', lineHeight: 1.7 }}>
-            아이스타에 처음 방문하신 사업자께선 0STAR를 선택하신 후<br />초대장을 확인하여 주시기 바랍니다.
+          <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '12px', letterSpacing: '0.3px', lineHeight: 2 }}>
+            아이스타에 처음 방문하신 사업자께선{' '}
+            <span style={{
+              display: 'inline-block',
+              padding: '2px 9px',
+              borderRadius: '20px',
+              border: '1px solid rgba(184,148,74,0.8)',
+              background: 'rgba(184,148,74,0.15)',
+              color: 'rgba(184,148,74,1)',
+              fontWeight: 700,
+              fontSize: '11px',
+              letterSpacing: '0.5px',
+              verticalAlign: 'middle',
+            }}>0STAR</span>{' '}
+            를 선택하신 후<br />초대장을 확인하여 주시기 바랍니다.
           </p>
         </div>
       </div>
